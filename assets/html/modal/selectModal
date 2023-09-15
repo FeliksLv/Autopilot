@@ -1,0 +1,57 @@
+<select name="temp_type">
+  <option value="default">-</option>
+  <option value="tag">Tag & Shopping</option>
+  <option value="leadGen">LeadGen</option>
+  <option value="external">Utilities</option>
+</select>
+<br>
+<select id="templateEmail">
+  <option value="default">-</option>
+  <option value="ts as new">New - Confirmation Email</option>
+  <option value="ts as resched1">AS - Reschedule 1</option>
+  <option value="ts as reschedok">AS - Acceptable Reschedule</option>
+  <option value="ts as reschedok">AS - Agent Reschedule</option>
+  <option value="ts ni ai">NI - Awaiting Inputs</option>
+  <option value="ts ni ic">NI - In Consult (ts ni ic)</option>
+  <option value="ts ni av">NI - Awaiting Validation (ts ni av)</option>
+  <option value="ts ni ac">NI - Attempted Contact (ts ni ac)</option>
+  <option value="ts ni oth">NI - Other (ts ni oth)</option>
+  <option value="ts in inf">IN - Infeasible (ts in inf)</option>
+  <option value="ts in nrch">IN - Not Reachable (ts in nrch)</option>
+  <option value="ts in ni">IN - Not Interested (ts in ni)</option>
+  <option value="ts in nrdy">IN - Not Ready (ts in nrdy)</option>
+  <option value="ts in oost">IN - Out of Scope - Rerouted to Internal Team (ts in oost)</option>
+  <option value="ts in oosu">IN - Out of Scope - Unable to Transfer (ts in oosu)</option>
+  <option value="ts in oos seller">IN - Out of Scope - Email to Seller (ts in oos seller)</option>
+  <option value="ts in oth">IN - Other (ts in oth)</option>
+  <option value="ts so verif">SO - Verified (ts so verif)</option>
+  <option value="ts so verif nrc">SO - Verified No Recent Conversion (ts so verif nrc)</option>
+  <option value="ts so unv">SO - Unverified (ts so unv)</option>
+  <option value="ts so vnn">SO - Verification Not Needed (ts so vnn)</option>
+  <option value="lg as wip offtfr">AS - Work in Progress - Offline Support (lg as wip offtfr)</option>
+  <option value="lg as wip offs">AS - Work in Progress - Offline Support (lg as wip offtfr)</option>
+  <option value="lg as new">New - Confirmation Email</option>
+  <option value="lg as wip seller">AS - Work in Progress - Pre Implementation Checklist to Seller (lg as
+    wip seller)</option>
+  <option value="lg as resched1">AS - Reschedule 1 (lg as resched1)</option>
+  <option value="lg as reschedok">AS - Acceptable Reschedule (lg as reschedok)</option>
+  <option value="lg ni ai">NI - Awaiting Inputs (lg ni ai)</option>
+  <option value="lg ni ic">NI - In Consult (lg ni ic)</option>
+  <option value="lg ni av">NI - Awaiting Validation (lg ni av)</option>
+  <option value="lg ni ac">NI - Attempted Contact (lg ni ac)</option>
+  <option value="lg ni lf">NI - Modifying leadform to accept GCLID (lg ni lf)</option>
+  <option value="lg ni crm">NI - Updating CRM to accept GCLID (lg ni crm)</option>
+  <option value="lg ni imp">NI - Preparing data for import (lg ni imp)</option>
+  <option value="lg ni oth">NI - Other (lg ni oth)</option>
+  <option value="lg in inf">IN - Infeasible (lg in inf)</option>
+  <option value="lg in nrch">IN - Not Reachable (lg in nrch)</option>
+  <option value="lg in ni">IN - Not Interested (lg in ni)</option>
+  <option value="lg in nrdy">IN - Not Ready (lg in nrdy)</option>
+  <option value="lg in oost">IN - Out of Scope - Rerouted to Internal Team (lg in oost)</option>
+  <option value="lg in oosu">IN - Out of Scope - Unable to Transfer (lg in oosu)</option>
+  <option value="lg in oos seller">IN - Out of Scope - Email to Seller (lg in oos seller)</option>
+  <option value="lg in oth">IN - Other (lg in oth)</option>
+  <option value="lg so verif">SO - Verified (lg so verif)</option>
+  <option value="lg so verif seller">SO - Verified Email to Seller (lg so verif seller)</option>
+  <option value="lg so oth">SO - Others (lg so oth)</option>
+</select>
