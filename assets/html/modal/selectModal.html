@@ -7,7 +7,7 @@
 </select>
 
 <label for="templateEmail" class="title">Email: </label>
-<select id="templateEmail" disabled="true">
+<select id="templateEmail" disabled="true" placeholder="test">
   <option value="default">-</option>
   <option value="ts as new">New - Confirmation Email</option>
   <option value="ts so verif">SO - Verified</option>
@@ -58,6 +58,6 @@
 </select>
 
 <label for="resch_date" class="title">Data:</label>
-<input id="resch_date" type="date">
+<input id="resch_date" type="text" placeholder="dd/mm/yyyy">
 <label for="resch_time" class="title">Hora: </label>
-<input id="resch_time" list="times" type="time" value="00:00">
+<select id="resch_time">
