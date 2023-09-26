@@ -1,4 +1,4 @@
-@font-face {
+  @font-face {
       font-family: 'Material Symbols Outlined';
       font-style: normal;
       font-weight: 400;
@@ -21,7 +21,7 @@
     }
 
     /* Estilo para o contêiner */
-    .container {
+    .modal-container {
       position: fixed;
       width: 20vw;
       top: 10px;
@@ -119,7 +119,7 @@
 
     }
 
-    .modal-input .input-container {
+    .modal-input .input-modal{
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -165,7 +165,7 @@
       font-size: 24px
     }
 
-    .mensagem-container>div {
+    .message-container>div {
       padding-top: 10px;
       color: red;
       font-size: 15px;
@@ -401,7 +401,6 @@
     .alert .close-btn:hover {
       background: #cd1818;
     }
-
     .alert .close-btn .fas {
       color: #ff0000;
       font-size: 22px;
