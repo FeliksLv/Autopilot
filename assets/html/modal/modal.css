@@ -1,4 +1,4 @@
-  @font-face {
+    @font-face {
       font-family: 'Material Symbols Outlined';
       font-style: normal;
       font-weight: 400;
@@ -23,9 +23,9 @@
     /* Estilo para o contêiner */
     .modal-container {
       position: fixed;
-      width: 20vw;
-      top: 10px;
-      right: 10px;
+      width: 1vw;
+      bottom: 10px;
+      left: 30px;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
@@ -69,8 +69,7 @@
     .modal {
       display: none;
       width: 450px;
-      /*height: 305px;*/
-      /* Defina a largura desejada, por exemplo, 80% */
+      height: 335px;
       background: none;
       border-radius: 10px;
       text-align: center;
@@ -79,6 +78,10 @@
       padding-top: 0px;
       z-index: 9998;
       font-family: 'Poppins', sans-serif;
+      position: fixed;
+      bottom: 10px;
+      left: 30px;
+      background-color: #ffffff
     }
 
     /* Estilo para a modal-content */
@@ -119,7 +122,7 @@
 
     }
 
-    .modal-input .input-modal{
+    .modal-input .input-modal {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -401,6 +404,7 @@
     .alert .close-btn:hover {
       background: #cd1818;
     }
+
     .alert .close-btn .fas {
       color: #ff0000;
       font-size: 22px;
