@@ -1,11 +1,10 @@
-    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+ function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
     //Load CDNs
     function loadScript(url) {
       return new Promise((resolve, reject) => {
         var script = document.createElement('script');
         script.type = 'text/javascript';
-        script.crossOrigin = 'anonymous'
         script.src = url;
         script.onload = resolve(`Fully loaded: ${url}`);
         script.onerror = reject(`Loading error: ${url}`);
@@ -17,7 +16,6 @@
       return new Promise((resolve, reject) => {
         var link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.crossOrigin = 'anonymous'
         link.href = url;
         link.onload = resolve(`Fully loaded: ${url}`);;
         link.onerror = reject(`Loading error: ${url}`);;
@@ -327,7 +325,7 @@
 
     async function init(resolve) {
       try {
-        await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
+        //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
         await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
         await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
         await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -379,6 +377,8 @@
         const modal = document.getElementById("myModal");
         const closeModal = document.getElementById("closeModal");
         const checkButton = document.getElementById("checkButton");
+        const showTime = document.getElementById("showTime");
+
 
         circle.addEventListener("click", () => {
           modal.style.display = "block"; // Exibe a modal
@@ -391,7 +391,7 @@
         });
         // Adicionar um evento de clique ao botão "Check"
         $(checkButton).on("click", validarInput);
-        $('#showTime').on("click", attachEmail);
+        $(showTime).on("click", attachEmail);
 
         $(window).on("change", handleSelect)
         $(window).on("mouseover", dragModal)
