@@ -1,5 +1,16 @@
  function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
+
+    function closeModal() {
+      $('#myModal').hide(); // Exibe a modal
+      $('#circle').css("display", "flex");
+    }
+
+    function openModal() {
+      $('#myModal').show(); // Exibe a modal
+      $('#circle').hide()
+    }
+
     //Load CDNs
     function loadScript(url) {
       return new Promise((resolve, reject) => {
@@ -22,64 +33,92 @@
         document.head.appendChild(link);
       });
     }
-    //Valida o Calendar ID
-    function validarInput() {
-      const input = document.querySelector(".modal-input input")
-      const msgContainer = document.querySelector(".message-container")
-      const valorInput = input.value.trim()
-      const mensagem = document.createElement("div")
-      const dateConfig = {
-        dateFormat: 'dd-mm-yy',
-        changeMonth: true,
-        changeYear: true,
-        minDate: new Date(),
-        yearRange: "c-0:c+1",
-        dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
-        dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
-        dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-        monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-        monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-      }
 
-      // Verificacao de input
-      if (valorInput.includes("@group.calendar.google.com") && valorInput.length === 52) {
-        //Criacao da div que contem os select
+    //Valida o Calendar ID
+    async function validarInput() {
+      const input = $(".modal-input input").val()
+      const msgContainer = document.querySelector(".message-container")
+      const message = document.createElement("div")
+      let calendarId = document.cookie.match(/calendarKey=(.{52})/);
+      //Disable all inputs of modal#1 until the Key validation will be done
+      $('.input-modal > input').prop('disabled', true)
+      $('#checkButton').prop('disabled', true)
+
+      try {
+        await validateKey()
+        await insertModal2()
+      }
+      catch (err) {
+        if (err.message === 'INVALID CALENDAR_ID') {
+          //Reativa os inputs do modal 1 para refazer a validação
+          $('.input-modal > input').prop('disabled', false)
+          $('#checkButton').prop('disabled', false)
+          //Imprime mensagem de erro
+          $(msgContainer).html("")
+          $(message).text("Erro: Escreva um ID valido!")
+          msgContainer.appendChild(message);
+        }
+        if (err.message === 'MODAL2 HTML FAILED') {
+          console.log('Erro 2')
+        }
+      }
+    }
+
+    function insertModal2() {
+      return new Promise(async (resolve, reject) => {
         const selectDiv = document.createElement("div")
         $(selectDiv).addClass("modal-select")
         $('.modal-body').html("")
         $('.modal-body')[0].appendChild(selectDiv)
 
+        //Criacao da div que contem os select
         fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/select.html')
-          .then(response => response.text()).then(temp => { $('.modal-select').html(temp) })
-
-        var isInserted = setInterval(() => {
-          if ($('#resch_time').length) {
-            clearInterval(isInserted);
-            timePickerConfig()
-            $(function () { $("#resch_date").datepicker(dateConfig) })
-
-            $('#showTime').on("click", async () => {
-              $('.alert').removeClass("show");
-              $('.alert').addClass("hide");
-              try {
-                await showError()
-                await removeError()
-                await showDefault()
-              }
-              catch (err) {
-                console.log(err)
-              }
-            });
-          }
-        }, 100)
-
-      }
-      else {
-        $(msgContainer).html("")
-        $(mensagem).text("Erro: Escreva um ID valido!")
-        msgContainer.appendChild(mensagem);
-      }
+          .then(response => {
+            if (!response.ok) { reject(new Error('MODAL2 HTML FAILED')) }
+            else { return response.text() }
+          }).then(temp => {
+            $('.modal-select').html(temp)
+            resolve()
+          })
+      })
     }
+
+    function validateKey() {
+      return new Promise(async (resolve, reject) => {
+        let calendarKey = document.cookie.match(/calendarKey=(.{52})/)
+        console.log(calendarKey)
+        if (calendarKey != null && await updateCalendar(calendarKey[1])) {
+          resolve();
+        }
+        reject(new Error("INVALID CALENDAR_ID"))
+      })
+    }
+
+    function updateCalendar(key) {
+      return new Promise(async (resolve, reject) => {
+        let timer = 0
+        const interval = 200
+        $(".myCalendar").remove()
+        var script = document.createElement('script');
+        $(script).addClass("myCalendar")
+        window.__Bifrost ? window.__Bifrost = undefined : null
+        script.type = 'text/javascript';
+        script.src = `https://script.google.com/a/macros/google.com/s/AKfycbwTbgE5PuM0JhS9duULuJdCkMsAvIoDx-hgeEr_rS4/dev?key=${key}&portal=Bifrost`;
+        document.head.appendChild(script);
+
+
+        while (timer < 3000) {
+          if (window.__Bifrost) {
+            console.log(`%cValid Calendar ID`, "color: green")
+            resolve(true)
+            return
+          }
+          await new Promise(resolve => setTimeout(resolve, interval));
+          timer += interval
+        }
+        resolve(false)
+      })
+    };
 
     //Handles the select tags visibility
     function handleSelect(event) {
@@ -194,6 +233,18 @@
         throw new Error(`%cEntity ${id} was not found`, "color: red")
       })
     };
+
+    function loadScript(url) {
+      return new Promise((resolve, reject) => {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        script.onload = resolve(`Fully loaded: ${url}`);
+        script.onerror = reject(`Loading error: ${url}`);
+        document.head.appendChild(script);
+      });
+    }
+
 
     async function newEmail() {
       $('[aria-label="Create a write card"]').dispatchEvent(new Event('focus'))
@@ -336,21 +387,36 @@
         await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
         await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
         await new Promise(resolve => setTimeout(resolve, 500));
+        await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
         await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
       }
       catch (error) {
-        console.error('Erro ao carregar CDN:', error);
+        console.error('Erro ao carregar CDN');
       }
     }
-    async function loadModal() {
-      return fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.html')
-        .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
+
+    /*UNCAO ENCARGADA DE INSERTAR EL HTML DE MODAL 1 POR PRIMERA VEZ, EN EL CASO QUE UNA CALENDAR KEY VALIDA
+    ESTE GUARDADE EN COOKIES STORAGE*/
+    function loadModal() {
+      return new Promise(async (resolve) => {
+        try {
+          await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.html')
+            .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
+          console.log('MODAL 1 INSERTED')
+          await validateKey()
+          await insertModal2()
+          resolve()
+        }
+        catch (err) { resolve() }
+      })
     }
 
     async function attachEmail() {
       try {
-        await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbwTbgE5PuM0JhS9duULuJdCkMsAvIoDx-hgeEr_rS4/dev?key=b020dnl5md95fvierdeprnv40o@group.calendar.google.com&portal=Bifrost");
-        await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
+        await validateKey()
+        await new Promise(resolve => setTimeout(resolve, 400));
+        console.log('AppsScript Injected')
+        console.log(__Bifrost)
         await bulkBifrost()
         await newEmail()
         await getActiveCard()
@@ -360,43 +426,71 @@
         console.log('Success msg');
       }
       catch (error) {
-        console.error('Erro durante a execução em:', error);
+        console.log(error.message)
       }
-    }
+    };
+
 
     (async function main() {
       try {
-        await init()
-        console.log(window.jQuery)
-        console.log(window.moment)
-        console.log(moment.tz.countries())
+        await init();
+        const dateConfig = {
+          dateFormat: 'dd-mm-yy',
+          changeMonth: true,
+          changeYear: true,
+          minDate: new Date(),
+          yearRange: "c-0:c+1",
+          dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
+          dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+          dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+          monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+          monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+        }
 
-        // Abrir a modal quando o ícone de notas é clicado
-        const noteIcon = document.getElementById("noteIcon");
-        const circle = document.getElementById("circle");
-        const modal = document.getElementById("myModal");
-        const closeModal = document.getElementById("closeModal");
-        const checkButton = document.getElementById("checkButton");
-        const showTime = document.getElementById("showTime");
-
-
-        circle.addEventListener("click", () => {
-          modal.style.display = "block"; // Exibe a modal
-          circle.style.display = "none"
+        $(window).on("change", handleSelect);
+        $(window).on("mouseover", dragModal);
+        $(window).on("click", (e) => {
+          $(e.target).is('#showTime') ? attachEmail()
+            : $(e.target).is('#checkButton') ? validarInput()
+              : e.target.closest('#closeModal') ? closeModal()
+                : e.target.closest('#circle') ? openModal() : null
         });
-        // Fechar a modal quando o botão de fechar é clicado
-        closeModal.addEventListener("click", () => {
-          modal.style.display = "none"; // Oculta a modal
-          circle.style.display = "flex"
-        });
-        // Adicionar um evento de clique ao botão "Check"
-        $(checkButton).on("click", validarInput);
-        $(showTime).on("click", attachEmail);
 
-        $(window).on("change", handleSelect)
-        $(window).on("mouseover", dragModal)
+        //SAVE CALENDAR ID ON COOKIE STORAGE
+        $(window).on("input", (e) => {
+          if ($(e.target).is('.input-modal > input')) {
+            let date = new Date()
+            date.setDate(date.getDate() + 400)
+            document.cookie = `calendarKey=${$(e.target).val().trim()}; expires=${date.toUTCString()}`
+          }
+        })
+
+        var modalLoaded = setInterval(() => {
+          if ($('#resch_time').length) {
+            //MODAL 2 CONFIG
+            clearInterval(modalLoaded);
+            timePickerConfig()
+            $(function () { $("#resch_date").datepicker(dateConfig) })
+
+            $('#showTime').on("click", async () => {
+              //GESTAO  ALERTAS 
+              $('#showTime').html('<i class="fa fa-cog fa-spin"></i>Carregando')
+              $('#showTime').prop('disabled', true)
+              $('.alert').removeClass("show");
+              $('.alert').addClass("hide");
+              try {
+                await showError()
+                await removeError()
+                await showDefault()
+                $('#showTime').prop('disabled', false)
+                $('#showTime').html('<i class="fa fa-cog"></i>Inserir')
+              }
+              catch (err) {
+                console.log(err)
+              }
+            });
+          }
+        }, 100)
       }
-      catch (error) {
-        console.error('Erro durante a execução em:', error);
-      }
+      catch (error) { }
     })();
