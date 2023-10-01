@@ -199,7 +199,7 @@
           let region = /(?<=\[)(.*?)(?=\])/
           let timezone = richContent.match(region)[0];
 
-          window.__caseData = __Bifrost.reduce((acc, data) => {
+          window.__caseData = __Bifrost.data.reduce((acc, data) => {
             return (activeCase === data.case_id ? {
               ...data, appointment: moment.tz(data.appointment, 'UTC').tz(timezone).format(('DD/MM/YYYY - hh:mm A')),
               name: $("head > title").text().match(/(?<=: )(.*?)(?= - C)/)[0]
