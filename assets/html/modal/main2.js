@@ -247,7 +247,7 @@
 
 
     async function newEmail() {
-      $('[aria-label="Create a write card"]').dispatchEvent(new Event('focus'))
+      $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
       await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
       $('[aria-label="Create new email"]')[0].click()
       console.log("%cCreated email", "color: orange")
