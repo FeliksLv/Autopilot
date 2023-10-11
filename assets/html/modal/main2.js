@@ -88,6 +88,7 @@
         let calendarKey = document.cookie.match(/calendarKey=(.{52})/)
         console.log(calendarKey)
         if (calendarKey != null && await updateCalendar(calendarKey[1])) {
+          console.log(__Bifrost)
           resolve();
         }
         reject(new Error("INVALID CALENDAR_ID"))
@@ -107,15 +108,18 @@
         document.head.appendChild(script);
 
 
-        while (timer < 3000) {
-          if (window.__Bifrost) {
+        while (timer < 4000) {
+          if (window.__Bifrost !== undefined && __Bifrost.data.length) {
+            console.log(`Novo Calendar ID`)
             console.log(`%cValid Calendar ID`, "color: green")
+            console.log(__Bifrost);
             resolve(true)
             return
           }
           await new Promise(resolve => setTimeout(resolve, interval));
           timer += interval
         }
+        console.log('UpdateCalendar false')
         resolve(false)
       })
     };
@@ -155,6 +159,8 @@
             : reschInputs.forEach(input => document.querySelector(input).disabled = true)
         }
       }
+
+
     }
     //Make the modal draggable
     function dragModal(event) {
@@ -187,31 +193,37 @@
       }, null)
     }
     //Creates __caseData responsible for save all data of the current active case 
-    async function bulkBifrost() {
-      $('[aria-label="Case log"]')[0].click()
-      for (const message of $('.active-case-log-container case-message-view')) {
-        if ($(message).html().includes('An appointment has been successfully created')) {
-          message.querySelector('div > div').click();
-          await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
+    function bulkBifrost() {
+      return new Promise(async (resolve, reject) => {
+        $('[aria-label="Case log"]')[0].click()
+        for (const message of $('.active-case-log-container case-message-view')) {
+          if ($(message).html().includes('An appointment has been successfully created')) {
+            message.querySelector('div > div').click();
+            await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
 
-          let activeCase = $('[data-case-id]').attr('data-case-id')
-          let richContent = message.querySelector('.message-body.message-body1').innerText
-          let region = /(?<=\[)(.*?)(?=\])/
-          let timezone = richContent.match(region)[0];
+            let activeCase = $('[data-case-id]').attr('data-case-id')
+            let richContent = message.querySelector('.message-body.message-body1').innerText
+            let region = /(?<=\[)(.*?)(?=\])/
+            let timezone = richContent.match(region)[0];
+            let getName = [...$('tab')].reduce((e, acc) => { return (e.getAttribute('aria-selected') === 'true' ? e : acc) })
 
-          window.__caseData = __Bifrost.data.reduce((acc, data) => {
-            return (activeCase === data.case_id ? {
-              ...data, appointment: moment.tz(data.appointment, 'UTC').tz(timezone).format(('DD/MM/YYYY - hh:mm A')),
-              name: $("head > title").text().match(/(?<=: )(.*?)(?= - C)/)[0]
-            } : acc)
-          }, {})
+            window.__caseData = __Bifrost.data.reduce((acc, data) => {
+              return (activeCase === data.case_id ? {
+                ...data, appointment: moment.tz(data.appointment, 'UTC').tz(timezone).format(('DD/MM/YYYY - hh:mm A')),
+                name: getName
+              } : acc)
+            }, {})
 
-          console.log(__caseData)
+            console.log('Updated Case Data')
+            console.log(__caseData)
+            resolve()
+          }
         }
-      }
+        reject()
+      })
     }
 
-    async function waitForEntity(el, id, type, origin) {
+    function waitForEntity(el, id, type, origin) {
       return new Promise(async (resolve) => {
         let timer = 0
         const interval = 500
@@ -230,7 +242,7 @@
           await new Promise(resolve => setTimeout(resolve, interval));
           timer += interval
         }
-        throw new Error(`%cEntity ${id} was not found`, "color: red")
+        reject(new Error(`%cEntity ${id} was not found`))
       })
     };
 
@@ -247,15 +259,18 @@
 
 
     async function newEmail() {
-      $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
-      await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
-      $('[aria-label="Create new email"]')[0].click()
-      console.log("%cCreated email", "color: orange")
+      return new Promise(async (resolve) => {
+        $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
+        await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
+        $('[aria-label="Create new email"]')[0].click()
+        console.log("%cCreated email", "color: orange")
+        resolve()
+      })
     };
 
     async function getActiveCard() {
-      let cards = getActiveTab().querySelectorAll('card')
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        let cards = getActiveTab().querySelectorAll('card')
         for (const element of cards) {
           if ($(element).attr('aria-hidden') === 'false') {
             window.__activeCard = {
@@ -266,32 +281,37 @@
             resolve()
           }
         }
-        throw new Error(`Entity cards not found`)
+        reject(new Error(`Entity cards not found`))
       })
     }
 
-    async function updateAdresses() {
-      //Update the sender
-      let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
-      await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
-      __activeCard.element.querySelector('.address[buttoncontent]').click();
-      await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
-      [...document.querySelectorAll(dropdownEmails)].pop().click()
-      //Update the attendees
-
+    function updateAdresses() {
+      return new Promise(async (resolve, reject) => {
+        //Update the sender
+        let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
+        await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
+        __activeCard.element.querySelector('.address[buttoncontent]').click();
+        await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
+        [...document.querySelectorAll(dropdownEmails)].pop().click()
+        resolve()
+        //Update the attendees
+      })
     }
 
-    async function insertTemplate() {
-      document.querySelector('[aria-label="Insert canned response"]').click()
-      console.log(document.querySelectorAll('[aria-label="Insert canned response"]'));
-      await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
-      document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
-      __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
-      document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
-      await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
-      __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
-      document.querySelector('material-select-dropdown-item span').click()
-      await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
+    function insertTemplate() {
+      return new Promise(async (resolve) => {
+        document.querySelector('[aria-label="Insert canned response"]').click()
+        console.log(document.querySelectorAll('[aria-label="Insert canned response"]'));
+        await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
+        document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
+        __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
+        document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
+        await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
+        __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
+        document.querySelector('material-select-dropdown-item span').click()
+        await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
+        resolve()
+      })
     }
 
     async function autoFill() {
@@ -312,35 +332,35 @@
       }
     }
 
-    async function showSuccess() {
+    function showSuccess(msg) {
       return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["default", "hide"]);
           $('.alert > span:first-child').removeClass(["fa-magic"]);
           $('.alert > span:first-child').addClass("fa-check-circle");
           $('.alert').addClass(["show", "success"]);
-          $(".msg").text('Inserido!')
+          $(".msg").text(msg)
           $('.close-btn').show()
           $('.alert').off()
           resolve()
         })
       })
     }
-    async function showError() {
+    function showError(msg) {
       return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["default", "hide"]);
           $('.alert > span:first-child').removeClass(["fa-magic"]);
           $('.alert > span:first-child').addClass("fa-exclamation-circle");
           $('.alert').addClass(["show", "error"]);
-          $(".msg").text('Execução interrompida!')
+          $(".msg").text(msg)
           $('.close-btn').show()
           $('.alert').off()
           resolve()
         })
       })
     }
-    async function removeError() {
+    function removeError() {
       return new Promise(async (resolve) => {
         $(".close-btn").on("click", (e) => {
           $('.alert').removeClass("show");
@@ -358,14 +378,14 @@
         }, 3000);
       })
     }
-    async function showDefault() {
+    function showDefault(msg) {
       return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["hide", "error", "success"]);
           $('.alert > span:first-child').removeClass(["fa-exclamation-circle", "fa-check-circle"]);
           $('.alert > span:first-child').addClass("fa-magic");
           $('.alert').addClass(["show", "default"]);
-          $(".msg").text('Aguardando instruçoes')
+          $(".msg").text(msg)
           $('.close-btn').hide()
           $('.alert').off()
           resolve()
@@ -395,8 +415,7 @@
       }
     }
 
-    /*UNCAO ENCARGADA DE INSERTAR EL HTML DE MODAL 1 POR PRIMERA VEZ, EN EL CASO QUE UNA CALENDAR KEY VALIDA
-    ESTE GUARDADE EN COOKIES STORAGE*/
+    /*Authenticated user*/
     function loadModal() {
       return new Promise(async (resolve) => {
         try {
@@ -411,11 +430,11 @@
       })
     }
 
+    /*
     async function attachEmail() {
       try {
         await validateKey()
         await new Promise(resolve => setTimeout(resolve, 400));
-        console.log('AppsScript Injected')
         console.log(__Bifrost)
         await bulkBifrost()
         await newEmail()
@@ -423,11 +442,28 @@
         await updateAdresses()
         await insertTemplate()
         await autoFill()
-        console.log('Success msg');
+        console.log('Autofilled temp');
       }
       catch (error) {
         console.log(error.message)
       }
+    };
+    */
+
+    async function attachEmail() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          await validateKey()
+          await bulkBifrost()
+          await newEmail()
+          await getActiveCard()
+          await updateAdresses()
+          await insertTemplate()
+          await autoFill()
+          resolve()
+        }
+        catch (error) { reject() }
+      })
     };
 
 
@@ -450,7 +486,7 @@
         $(window).on("change", handleSelect);
         $(window).on("mouseover", dragModal);
         $(window).on("click", (e) => {
-          $(e.target).is('#showTime') ? attachEmail()
+          $(e.target).is('#showTime') ? console.log('ShowTime Clicked')
             : $(e.target).is('#checkButton') ? validarInput()
               : e.target.closest('#closeModal') ? closeModal()
                 : e.target.closest('#circle') ? openModal() : null
@@ -473,24 +509,41 @@
             $(function () { $("#resch_date").datepicker(dateConfig) })
 
             $('#showTime').on("click", async () => {
-              //GESTAO  ALERTAS 
-              $('#showTime').html('<i class="fa fa-cog fa-spin"></i>Carregando')
-              $('#showTime').prop('disabled', true)
-              $('.alert').removeClass("show");
-              $('.alert').addClass("hide");
+              let selectEmail = document.querySelector('#templateEmail')
+              let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
+
+              $('#showTime').html('Carregando<i class="fa fa-cog fa-spin"></i>')
+              $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+              $('.alert').removeClass("show")
+              $('.alert').addClass("hide")
+              showDefault('Trabalhando...')
+
               try {
-                await showError()
+                await attachEmail()
+                await showSuccess('Execuçao Exitosa!')
                 await removeError()
-                await showDefault()
-                $('#showTime').prop('disabled', false)
-                $('#showTime').html('<i class="fa fa-cog"></i>Inserir')
+                await showDefault('Aguardando instruçoes')
+
               }
-              catch (err) {
-                console.log(err)
+              catch (error) {
+                if (selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
+                  && reschInputs.every(input => $(input).val() === '' || $(input).val() === 'default')) {
+                  await showError('Preencha todos os campos!')
+                  await removeError()
+                  await showDefault('Aguardando instruçoes')
+                }
               }
-            });
+            })
           }
         }, 100)
       }
       catch (error) { }
     })();
+
+    async function displayError(msg) {
+      await showError(msg)
+      await removeError()
+      await showDefault('Aguardando instruçoes')
+      $('#showTime').prop('disabled', false)
+      $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
+    }
