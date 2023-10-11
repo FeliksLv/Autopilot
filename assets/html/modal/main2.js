@@ -1,4 +1,4 @@
- function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -205,12 +205,12 @@
             let richContent = message.querySelector('.message-body.message-body1').innerText
             let region = /(?<=\[)(.*?)(?=\])/
             let timezone = richContent.match(region)[0];
-            let getName = [...$('tab')].reduce((e, acc) => { return (e.getAttribute('aria-selected') === 'true' ? e : acc) })
+            let getName = [...$('tab')].reduce((acc, e) => { return (e.getAttribute('aria-selected') === 'true' ? e.innerText : acc) }, 'DEFAULT')
 
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
               return (activeCase === data.case_id ? {
                 ...data, appointment: moment.tz(data.appointment, 'UTC').tz(timezone).format(('DD/MM/YYYY - hh:mm A')),
-                name: getName
+                name: getName.innerText
               } : acc)
             }, {})
 
@@ -396,7 +396,7 @@
 
     async function init(resolve) {
       try {
-        await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
+        //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
         await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
         await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
         await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -520,10 +520,12 @@
 
               try {
                 await attachEmail()
+                $('.alert').removeClass("show")
+                $('.alert').addClass("hide")
                 await showSuccess('Execuçao Exitosa!')
                 await removeError()
                 await showDefault('Aguardando instruçoes')
-
+                $('#showTime').prop('disabled', false)
               }
               catch (error) {
                 if (selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
