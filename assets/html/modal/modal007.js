@@ -286,13 +286,9 @@
         //Update the sender
         let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
         await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
-        console.log(123);
-        console.log(__activeCard.element.querySelector('.address[buttoncontent]'));
         __activeCard.element.querySelector('.address[buttoncontent]').click();
         await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
-        console.log([...document.querySelectorAll(dropdownEmails)]);
         [...document.querySelectorAll(dropdownEmails)].pop().click()
-        console.log([...document.querySelectorAll(dropdownEmails)]);
         console.log('depos - resolvido');
         resolve()
         //Update the attendees
@@ -309,21 +305,34 @@
         await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
         __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
         //Range EXPERIMENT
-        let startingElement = __activeCard.element.querySelector('#email-body-content-top-content'); // Substitua com o ID ou outra maneira de selecionar seu elemento
-        let selection = window.getSelection();
-        let range = document.createRange();
-
-        range.selectNodeContents(startingElement);
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        console.log('Selected text');
-        console.log(window.getSelection())
-
+        await waitForSelection() // NOVO
         document.querySelector('material-select-dropdown-item span').click()
         console.log(window.getSelection())
         await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
         resolve()
+      })
+    }
+
+    function waitForSelection() {
+      return new Promise(async (resolve, reject) => {
+        var validateSelection = setInterval(function () {
+          let selection = window.getSelection();
+          let startingElement = __activeCard.element.querySelector('#email-body-content-top-content');
+          selection.removeAllRanges();
+
+          let range = document.createRange();
+          range.selectNodeContents(startingElement);
+          selection.addRange(range);
+
+          if (window.getSelection()) {
+            console.log(startingElement)
+            console.log('Selected text');
+            console.log(window.getSelection());
+            resolve()
+            clearInterval(validateSelection)
+          }
+          else { console.log(`%cFAILED SELECTION`, 'red') }
+        }, 500)
       })
     }
 
@@ -416,10 +425,10 @@
         await new Promise(resolve => setTimeout(resolve, 500));
         await loadModal()
         await loadScript('https://momentjs.com/downloads/moment.min.js');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
         await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
         await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
       }
@@ -540,6 +549,7 @@
                 await showDefault('Aguardando instruçoes')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', false)
                 $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
+                console.log('Finished')
               }
               catch (error) {
                 if (selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
