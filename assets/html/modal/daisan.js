@@ -288,7 +288,10 @@
         await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
         __activeCard.element.querySelector('.address[buttoncontent]').click();
         await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
+        console.log([...document.querySelectorAll(dropdownEmails)]);
         [...document.querySelectorAll(dropdownEmails)].pop().click()
+        console.log([...document.querySelectorAll(dropdownEmails)]);
+        console.log('depos - resolvido');
         resolve()
         //Update the attendees
       })
@@ -302,7 +305,10 @@
         __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
         document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
         await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
+        console.log(__activeCard.element)
+        console.log(__activeCard.element.querySelector('#email-body-content-top-content'))
         __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
+        console.log(__activeCard.element.querySelector('#email-body-content-top-content'));
         document.querySelector('material-select-dropdown-item span').click()
         await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
         resolve()
