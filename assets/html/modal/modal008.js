@@ -1,4 +1,4 @@
-    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -296,43 +296,24 @@
     }
 
     function insertTemplate() {
-      return new Promise(async (resolve) => {
-        document.querySelector('[aria-label="Insert canned response"]').click()
-        await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
-        document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
-        __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
-        document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
-        await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
-        __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
-        //Range EXPERIMENT
-        await waitForSelection() // NOVO
-        document.querySelector('material-select-dropdown-item span').click()
-        console.log(window.getSelection())
-        await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
-        resolve()
-      })
-    }
-
-    function waitForSelection() {
       return new Promise(async (resolve, reject) => {
-        var validateSelection = setInterval(function () {
-          let selection = window.getSelection();
-          let startingElement = __activeCard.element.querySelector('#email-body-content-top-content');
-          selection.removeAllRanges();
+        if (document.querySelectorAll('#email-body-content-top-content').length === 1) {
+          document.querySelector('[aria-label="Insert canned response"]').click()
+          await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
+          document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
+          __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
+          document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
+          await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
+          __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
 
-          let range = document.createRange();
-          range.selectNodeContents(startingElement);
-          selection.addRange(range);
-
-          if (window.getSelection()) {
-            console.log(startingElement)
-            console.log('Selected text');
-            console.log(window.getSelection());
-            resolve()
-            clearInterval(validateSelection)
-          }
-          else { console.log(`%cFAILED SELECTION`, 'red') }
-        }, 500)
+          document.querySelector('material-select-dropdown-item span').click()
+          console.log(window.getSelection())
+          await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
+          resolve()
+        }
+        else {
+          reject(new Error(`TOO MANY EMAIL CARDS OPEN`))
+        }
       })
     }
 
@@ -484,7 +465,10 @@
           await autoFill()
           resolve()
         }
-        catch (error) { reject() }
+        catch (error) {
+          console.log(error)
+          reject()
+        }
       })
     };
 
