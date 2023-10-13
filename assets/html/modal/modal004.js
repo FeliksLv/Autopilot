@@ -1,4 +1,4 @@
-   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -88,7 +88,6 @@
         let calendarKey = document.cookie.match(/calendarKey=(.{52})/)
         console.log(calendarKey)
         if (calendarKey != null && await updateCalendar(calendarKey[1])) {
-          console.log(__Bifrost)
           resolve();
         }
         reject(new Error("INVALID CALENDAR_ID"))
@@ -110,7 +109,6 @@
 
         while (timer < 4000) {
           if (window.__Bifrost !== undefined && __Bifrost.data.length) {
-            console.log(`Novo Calendar ID`)
             console.log(`%cValid Calendar ID`, "color: green")
             console.log(__Bifrost);
             resolve(true)
@@ -119,7 +117,6 @@
           await new Promise(resolve => setTimeout(resolve, interval));
           timer += interval
         }
-        console.log('UpdateCalendar false')
         resolve(false)
       })
     };
@@ -210,16 +207,15 @@
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
               return (activeCase === data.case_id ? {
                 ...data, appointment: moment.tz(data.appointment, 'UTC').tz(timezone).format(('DD/MM/YYYY - hh:mm A')),
-                name: getName.innerText
+                name: getName
               } : acc)
             }, {})
 
-            console.log('Updated Case Data')
             console.log(__caseData)
             resolve()
           }
         }
-        reject()
+        reject(new Error("BIFROST BULK ERROR"))
       })
     }
 
@@ -301,7 +297,6 @@
     function insertTemplate() {
       return new Promise(async (resolve) => {
         document.querySelector('[aria-label="Insert canned response"]').click()
-        console.log(document.querySelectorAll('[aria-label="Insert canned response"]'));
         await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
         document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
         __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
@@ -396,7 +391,7 @@
 
     async function init(resolve) {
       try {
-        await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
+        //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
         await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
         await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
         await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -525,7 +520,8 @@
                 await showSuccess('Execuçao Exitosa!')
                 await removeError()
                 await showDefault('Aguardando instruçoes')
-                $('#showTime').prop('disabled', false)
+                $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', false)
+                $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
               }
               catch (error) {
                 if (selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
@@ -533,6 +529,8 @@
                   await showError('Preencha todos os campos!')
                   await removeError()
                   await showDefault('Aguardando instruçoes')
+                  
+
                 }
               }
             })
