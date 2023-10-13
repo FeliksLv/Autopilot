@@ -1,4 +1,4 @@
-  function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -287,7 +287,7 @@
         let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
         await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
         console.log(123);
-        console.log( __activeCard.element.querySelector('.address[buttoncontent]'));
+        console.log(__activeCard.element.querySelector('.address[buttoncontent]'));
         __activeCard.element.querySelector('.address[buttoncontent]').click();
         await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
         console.log([...document.querySelectorAll(dropdownEmails)]);
@@ -307,10 +307,22 @@
         __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
         document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
         await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
-        __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
-        console.log(getSelection().anchorNode)
+        //__activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
+        //__activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>
+        //Range EXPERIMENT
+        let startingElement = __activeCard.element.querySelector('#email-body-content-top-content'); // Substitua com o ID ou outra maneira de selecionar seu elemento
+        let selection = window.getSelection();
+        let range = document.createRange();
+
+        range.selectNodeContents(startingElement);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        console.log('Selected text');
+        console.log(window.getSelection())
+
         document.querySelector('material-select-dropdown-item span').click()
-        console.log(getSelection().anchorNode)
+        console.log(window.getSelection())
         await waitForEntity('.visual-message', 'Canned_response_confirmation', 'sel')
         resolve()
       })
