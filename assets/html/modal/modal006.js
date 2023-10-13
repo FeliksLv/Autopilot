@@ -1,4 +1,4 @@
-   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -224,7 +224,7 @@
         let timer = 0
         const interval = 500
 
-        while (timer < 10000) {
+        while (timer < 15000) {
           if (type === 'sel' && document.querySelectorAll(el)[0]) {
             console.log(`%cSelector ${id} has been found`, "color: orange")
             resolve();
