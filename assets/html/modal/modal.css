@@ -33,7 +33,7 @@
     }
 
     /* Estilo para o círculo roxo animado */
-    .circle-animation {
+    .modal-container .circle-animation {
       width: 50px;
       height: 50px;
       background-color: purple;
@@ -59,14 +59,14 @@
     }
 
     /* Estilos para o ícone de notas */
-    #noteIcon {
+    .modal-container #noteIcon {
       cursor: pointer;
       font-size: 25px;
       color: white;
     }
 
     /* Estilos para a modal */
-    #myModal {
+    .modal-container #myModal {
       display: none;
       width: 450px;
       height: 330px;
@@ -85,15 +85,13 @@
     }
 
     /* Estilo para a modal-content */
-    .modal-content {
+    .modal-container .modal-content {
       display: flex;
       flex-direction: column;
     }
 
-
-
     /* Estilo para a modal-header */
-    .modal-header {
+    .modal-container .modal-header {
       background-color: purple;
       /* Cor de fundo roxa */
       color: white;
@@ -114,7 +112,7 @@
     }
 
     /* Estilo para a seção de texto */
-    .modal-text {
+    .modal-container .modal-text {
       flex: 1;
       font-size: 15px;
       text-align: left;
@@ -122,13 +120,13 @@
 
     }
 
-    .modal-input .input-modal {
+    .modal-container .modal-input .input-modal {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .modal-input input {
+    .modal-container .modal-input input {
       flex-grow: 1;
       /* Ocupa todo o espaço disponível */
       padding-left: 10px;
@@ -146,7 +144,7 @@
       /* Adiciona barra de rolagem vertical se necessário */
     }
 
-    .modal-input button#checkButton {
+    .modal-container .modal-input button#checkButton {
       width: 70px;
       height: 40px;
       background-color: purple;
@@ -157,31 +155,31 @@
     }
 
     /* Estilo para o título do projeto */
-    .modal-title {
+    .modal-container .modal-title {
       font-size: 24px;
       /* Defina o tamanho da fonte desejado */
     }
 
-    #closeModal {
+    .modal-container #closeModal {
       cursor: pointer;
       padding-right: 10px;
       font-size: 24px
     }
 
-    .message-container>div {
+    .modal-container .message-container>div {
       padding-top: 5px;
       color: red;
       font-size: 15px;
     }
 
-    .modal-select {
+    .modal-container .modal-select {
       display: flex;
       flex-direction: column;
       justify-content: center;
       width: 100%;
     }
 
-    .title {
+    .modal-container .title {
       margin-bottom: 5px;
       text-align: left;
       /* Espaçamento à direita para separar o título do select */
@@ -210,16 +208,16 @@
 
     }
 
-    select {
+    .modal-container select {
       height: 25px;
     }
 
-    input {
+    .modal-container input {
       font-size: 12px;
       height: 25px;
     }
 
-    ol {
+    .modal-container ol {
       padding-left: 20px;
       margin-bottom: 10px;
     }
