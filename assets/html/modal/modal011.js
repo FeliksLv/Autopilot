@@ -301,7 +301,6 @@
         await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
         __activeCard.element.querySelector('.address[buttoncontent]').click();
         await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
-        await new Promise(resolve => setTimeout(resolve, 2000));
         [...document.querySelectorAll(dropdownEmails)].pop().click()
         //Update the attendees
 
