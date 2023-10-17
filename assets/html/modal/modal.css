@@ -1,4 +1,4 @@
- @font-face {
+    @font-face {
       font-family: 'Material Symbols Outlined';
       font-style: normal;
       font-weight: 400;
@@ -268,7 +268,7 @@
       margin-right: 5px;
     }
 
-    .alert {
+    .modal-container .alert {
       padding: 18px 40px;
       min-width: 200px;
       right: 0;
@@ -278,23 +278,23 @@
       pointer-events: none;
     }
 
-    .success {
+    .modal-container .success {
       background: #71e38ddb;
       border-left: 8px solid #1bb340db;
     }
 
-    .error {
+    .modal-container .error {
       background: #fe9999;
       border-left: 8px solid #ff0202;
     }
 
-    .default {
+    .modal-container .default {
       background: #815c84;
       border-left: 8px solid #ff3fbd;
     }
 
 
-    div.showAlert {
+    .modal-container div.showAlert {
       opacity: 1;
       pointer-events: auto;
     }
@@ -339,7 +339,7 @@
     }
 
 
-    div.show {
+    .modal-container div.show {
       animation: show_slide 1s ease forwards;
     }
 
@@ -347,7 +347,7 @@
       animation: hide_slide 1s ease forwards;
     }
 
-    .alert .fa-exclamation-circle {
+    .modal-container .alert .fa-exclamation-circle {
       position: absolute;
       left: 20px;
       top: 50%;
@@ -356,7 +356,7 @@
       font-size: 30px;
     }
 
-    .alert .fa-check-circle {
+    .modal-container .alert .fa-check-circle {
       position: absolute;
       left: 20px;
       top: 50%;
@@ -365,7 +365,7 @@
       font-size: 30px;
     }
 
-    .alert .fa-magic {
+    .modal-container .alert .fa-magic {
       position: absolute;
       left: 20px;
       top: 50%;
@@ -374,14 +374,14 @@
       font-size: 30px;
     }
 
-    .alert .msg {
+    .modal-container .alert .msg {
       padding: 0px;
       padding-left: 20px;
       font-size: 14px;
       color: #000000;
     }
 
-    .error .close-btn {
+    .modal-container .error .close-btn {
       position: absolute;
       right: 0px;
       top: 50%;
@@ -391,7 +391,7 @@
       cursor: pointer;
     }
 
-    .success .close-btn {
+    .modal-container .success .close-btn {
       position: absolute;
       right: 0px;
       top: 50%;
@@ -401,17 +401,17 @@
       cursor: pointer;
     }
 
-    .alert .close-btn:hover {
+    .modal-container .alert .close-btn:hover {
       background: #cd1818;
     }
 
-    .alert .close-btn .fas {
+    .modal-container .alert .close-btn .fas {
       color: #ff0000;
       font-size: 22px;
       line-height: 40px;
     }
 
-    .fa-cog {
+    .modal-container .fa-cog {
       font-size: 15px;
       margin-left: 5px;
     }
