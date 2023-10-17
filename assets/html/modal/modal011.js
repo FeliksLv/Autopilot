@@ -34,13 +34,12 @@
       });
     }
 
-    //Valida o Calendar ID
+    //Valida o Calendar ID (MODAL 1)
     async function validarInput() {
       const input = $(".modal-input input").val()
       const msgContainer = document.querySelector(".message-container")
       const message = document.createElement("div")
       let calendarId = document.cookie.match(/calendarKey=(.{52})/);
-      //Disable all inputs of modal#1 until the Key validation will be done
       $('.input-modal > input').prop('disabled', true)
       $('#checkButton').prop('disabled', true)
 
@@ -53,13 +52,16 @@
           //Reativa os inputs do modal 1 para refazer a validação
           $('.input-modal > input').prop('disabled', false)
           $('#checkButton').prop('disabled', false)
-          //Imprime mensagem de erro
           $(msgContainer).html("")
           $(message).text("Erro: Escreva um ID valido!")
           msgContainer.appendChild(message);
         }
         if (err.message === 'MODAL2 HTML FAILED') {
-          console.log('Erro 2')
+          $('.input-modal > input').prop('disabled', false)
+          $('#checkButton').prop('disabled', false)
+          $(msgContainer).html("")
+          $(message).text("Erro de servidor")
+          msgContainer.appendChild(message);
         }
       }
     }
@@ -192,43 +194,45 @@
     //Creates __caseData responsible for save all data of the current active case 
     function bulkBifrost() {
       return new Promise(async (resolve, reject) => {
-        $('[aria-label="Case log"]')[0].click()
-        var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id') }
+        try {
+          $('[aria-label="Case log"]')[0].click()
+          var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id') }
 
-        for (const message of $('.active-case-log-container case-message-view')) {
-          if ($(message).html().includes('An appointment has been successfully created')) {
-            message.querySelector('div > div').click()
-            await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
-            var region = /(?<=\[)(.*?)(?=\])/
-            var richContent = $(message.querySelector('.message-body.message-body1')).text()
-            //Get Name only returns DEFAULT on tabs other than a case tab
-            bulkData.timezone = richContent.match(region)[0];
-            bulkData.name = [...document.querySelectorAll('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT')
-          }
-          else if ($(message).html().includes('Review case in Connect Sales')) {
-            message.querySelector('div > div').click()
-            await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
-            let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim()
-            bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() }
+          for (const message of $('.active-case-log-container case-message-view')) {
+            if ($(message).html().includes('An appointment has been successfully created')) {
+              message.querySelector('div > div').click()
+              await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
+              var region = /(?<=\[)(.*?)(?=\])/
+              var richContent = $(message.querySelector('.message-body.message-body1')).text()
+              //Get Name only returns DEFAULT on tabs other than a case tab
+              bulkData.timezone = richContent.match(region)[0];
+              bulkData.name = [...document.querySelectorAll('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT')
+            }
+            else if ($(message).html().includes('Review case in Connect Sales')) {
+              message.querySelector('div > div').click()
+              await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
+              let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim()
+              bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() }
 
-            for (const data of $('.message-body.message-body1 tbody > tr')) {
-              $(data.querySelector('td:first-child')).text() === 'Tasks' ? bulkData.task = $(data.querySelector('td:last-child')).text()
-                : $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
-                  : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null
+              for (const data of $('.message-body.message-body1 tbody > tr')) {
+                $(data.querySelector('td:first-child')).text() === 'Tasks' ? bulkData.task = $(data.querySelector('td:last-child')).text()
+                  : $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
+                    : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null
+              }
             }
           }
+
+          window.__caseData = __Bifrost.data.reduce((acc, data) => {
+            return (bulkData.activeCase === data.case_id ? {
+              ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format(('DD/MM/YYYY - hh:mm A')),
+              name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website
+            } : acc)
+          }, {})
+
+          console.log(__caseData)
+          resolve()
         }
-
-        window.__caseData = __Bifrost.data.reduce((acc, data) => {
-          return (bulkData.activeCase === data.case_id ? {
-            ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format(('DD/MM/YYYY - hh:mm A')),
-            name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website
-          } : acc)
-        }, {})
-
-        console.log(__caseData)
-        resolve()
-        //reject(new Error("BIFROST BULK ERROR"))
+        catch (error) { reject(new Error("BIFROST BULK ERROR")) }
       })
     }
 
@@ -311,15 +315,6 @@
         await insertNewEmails()
         console.log("%cModified Emails", "color: green")
         resolve()
-
-        /*Teste
-        meuInput.value = 'haraca123@gmail.com, daisanobakudan2@gmail.com, felipotest@gmail.com';
-
-        meuInput.dispatchEvent(kbEvent);
-        meuInput.value += ',';
-        let eventoInput = new Event('input', { bubbles: true });
-        meuInput.dispatchEvent(inputEvent);
-        */
       })
     }
 
@@ -500,7 +495,7 @@
       }
     }
 
-    /*Authenticated user*/
+    /*User AUTH*/
     function loadModal() {
       return new Promise(async (resolve) => {
         try {
@@ -514,26 +509,6 @@
         catch (err) { resolve() }
       })
     }
-
-    /*
-    async function attachEmail() {
-      try {
-        await validateKey()
-        await new Promise(resolve => setTimeout(resolve, 400));
-        console.log(__Bifrost)
-        await bulkBifrost()
-        await newEmail()
-        await getActiveCard()
-        await updateAdresses()
-        await insertTemplate()
-        await autoFill()
-        console.log('Autofilled temp');
-      }
-      catch (error) {
-        console.log(error.message)
-      }
-    };
-    */
 
     async function attachEmail() {
       return new Promise(async (resolve, reject) => {
@@ -552,7 +527,6 @@
         }
       })
     };
-
 
     (async function main() {
       try {
@@ -612,26 +586,31 @@
                 await showSuccess('Execuçao Exitosa!')
                 await removeError()
                 await showDefault('Aguardando instruçoes')
-                $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', false)
+                $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
                 $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
-                console.log('Finished')
+                console.log(`%cSucceded execution`, "color: green")
               }
               catch (error) {
                 if (selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
-                  && reschInputs.every(input => $(input).val() === '' || $(input).val() === 'default')) {
+                  && reschInputs.some(input => $(input).val() === '' || $(input).val() === 'default')) {
+                  $('.alert').removeClass("show")
+                  $('.alert').addClass("hide")
                   await showError('Preencha todos os campos!')
                   await removeError()
                   await showDefault('Aguardando instruçoes')
                 }
                 else {
+                  console.log(error)
+                  /*
                   $('.alert').removeClass("show")
                   $('.alert').addClass("hide")
                   await showError('Complete seus outros emails')
                   await removeError()
                   await showDefault('Aguardando instruçoes')
-                  $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', false)
+                  $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
                   $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
                   console.log('Finished')
+                  */
                 }
               }
             })
