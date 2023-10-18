@@ -147,6 +147,7 @@
           if ($(selectType).val() === "default") {
             selectEmail.disabled = true
             selectEmail.value = "default"
+            reschInputs.forEach(input => $(input).attr('disabled', true))
           }
         }
       }
@@ -154,8 +155,8 @@
       if (event.target === selectEmail) {
         for (option of [...selectEmail.children].filter(e => e.style.display === '')) {
           selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
-            ? reschInputs.forEach(input => document.querySelector(input).disabled = false)
-            : reschInputs.forEach(input => document.querySelector(input).disabled = true)
+            ? reschInputs.forEach(input => $(input).attr('disabled', false))
+            : reschInputs.forEach(input => $(input).attr('disabled', true))
         }
       }
 
@@ -300,21 +301,27 @@
 
     async function updateAdresses() {
       return new Promise(async (resolve, reject) => {
-        //Update the sender
-        let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
-        await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
-        __activeCard.element.querySelector('.address[buttoncontent]').click();
-        await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
-        [...document.querySelectorAll(dropdownEmails)].pop().click()
-        //Update the attendees
+        try {
+          //Update the sender
+          let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
+          await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
+          //Timeout
+          __activeCard.element.querySelector('.address[buttoncontent]').click();
+          await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
+          [...document.querySelectorAll(dropdownEmails)].pop().click()
+          //Update the attendees
 
-        __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
-        await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
-        await removeDefaultEmails()
-        //Update all of the calendar attendees including the seller
-        await insertNewEmails()
-        console.log("%cModified Emails", "color: green")
-        resolve()
+          __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
+          await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
+          await removeDefaultEmails()
+          //Update all of the calendar attendees including the seller
+          await insertNewEmails()
+          console.log("%cModified Emails", "color: green")
+          resolve()
+        }
+        catch (err) {
+          reject(new Error(`ERROR ADRESSES UPDATE`))
+        }
       })
     }
 
@@ -586,7 +593,8 @@
                 await showSuccess('Execuçao Exitosa!')
                 await removeError()
                 await showDefault('Aguardando instruçoes')
-                $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
+                $('#temp_type').val('default')
+                $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                 $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
                 console.log(`%cSucceded execution`, "color: green")
               }
@@ -598,6 +606,7 @@
                   await showError('Preencha todos os campos!')
                   await removeError()
                   await showDefault('Aguardando instruçoes')
+                  
                 }
                 else {
                   console.log(error)
