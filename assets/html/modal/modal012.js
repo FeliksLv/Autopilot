@@ -594,6 +594,7 @@
                 await removeError()
                 await showDefault('Aguardando instruçoes')
                 $('#temp_type').val('default')
+                $('#temp_type, #showTime').prop('disabled', false)
                 $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                 $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
                 console.log(`%cSucceded execution`, "color: green")
