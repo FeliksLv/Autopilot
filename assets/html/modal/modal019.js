@@ -1,4 +1,4 @@
-    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -35,7 +35,7 @@
     }
 
     //Valida o Calendar ID (MODAL 1)
-    async function validarInput() {
+    async function validateId() {
       const input = $(".modal-input input").val()
       const msgContainer = document.querySelector(".message-container")
       const message = document.createElement("div")
@@ -123,20 +123,13 @@
       })
     };
 
-    //Handles the select tags visibility
+    //Handles select tags visibility
     function handleSelect(event) {
       let selectType = document.querySelector('#temp_type')
       let selectEmail = document.querySelector('#templateEmail')
       let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
-
-      if (event.target === $(selectType)[0]) {
-        //Options  visibility
-        for (option of selectEmail) {
-          if ($(selectType).val() === "leadGen") { option.value.includes("lg") ? $(option).show() : $(option).hide() }
-          if ($(selectType).val() === "tag") { option.value.includes("ts") ? $(option).show() : $(option).hide() }
-          if ($(selectType).val() === "default") { $(selectEmail).attr('disabled', true) }
-          if ($(selectType).val() === "external") { console.log('Coming Soon') }
-        }
+      if (event.target === selectType) {
+        //Default select behavior
         $('#showTime').attr('disabled', true)
         $(selectEmail).attr('disabled', false)
         $(selectEmail).val('default');
@@ -144,13 +137,17 @@
           $(input).attr('disabled', true)
           i === 0 ? $(input).val('') : $(input).val('default')
         })
+        //Handle Visibility Options
+        for (option of selectEmail) {
+          if ($(selectType).val() === "leadGen") { option.value.includes("lg") ? $(option).show() : $(option).hide() }
+          if ($(selectType).val() === "tag") { option.value.includes("ts") ? $(option).show() : $(option).hide() }
+          if ($(selectType).val() === "external") { console.log('Coming Soon') }
+        }
       }
 
       if (event.target === selectEmail) { $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
-
       if (reschInputs.some(input => event.target === $(input)[0])) { reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true) }
 
-      //Handle no Reschedule templates
       function noReschedule() {
         $('#showTime').attr('disabled', false)
         if ($(selectEmail).val() !== 'default') {
@@ -301,7 +298,8 @@
           if ($(element).attr('aria-hidden') === 'false') {
             window.__activeCard = {
               'element': element,
-              'type': $(element).attr('card-type')
+              'type': $(element).attr('card-type'),
+              'selectedTemp': $("#templateEmail").val()
             }
             console.log(`%c${window.__activeCard.type} card detected`, "color: green")
             resolve()
@@ -322,7 +320,6 @@
           await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
           [...document.querySelectorAll(dropdownEmails)].pop().click()
           //Update the attendees
-
           __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
           await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
           await removeDefaultEmails()
@@ -343,20 +340,35 @@
         let ccField = '[aria-label="Enter Cc email address"]'
         let bccField = '[aria-label="Enter Bcc email address"]'
         let bccPrograms = ['Olympus', 'PKA', 'pka']
+        let sellerTemps = __qaData.reduce((acc, e) => {
+          return (e.to === 'seller' ? [...acc, e.crCode] : acc)
+        }, [])
 
-        $(toField).val(__caseData.attendees.toString())
-        updateInput(toField)
-
-        if (bccPrograms.some(e => __caseData.program.includes(e))) {
-          $(bccField).val(__caseData.sellerInfo.email)
-          updateInput(bccField)
-          resolve()
-        }
-        else {
-          $(ccField).val(__caseData.sellerInfo.email)
+        //To seller
+        if (sellerTemps.includes(__activeCard.selectedTemp)) {
+          console.log("%cTo Seller", "color: orange")
+          $(toField).val(__caseData.sellerInfo.email)
           updateInput(ccField)
           resolve()
-        };
+        }
+        //To customer
+        else {
+          console.log("%cTo Customer", "color: orange")
+          $(toField).val(__caseData.attendees.toString())
+          updateInput(toField)
+
+          if (bccPrograms.some(e => __caseData.program.includes(e))) {
+            $(bccField).val(__caseData.sellerInfo.email)
+            updateInput(bccField)
+            resolve()
+          }
+          else {
+            $(ccField).val(__caseData.sellerInfo.email)
+            updateInput(ccField)
+            resolve()
+          };
+        }
+
 
         function updateInput(input) {
           let inputEvent = new Event('input', { bubbles: true });
@@ -383,7 +395,6 @@
           document.querySelector('[aria-label="Insert canned response"]').click()
           await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
           document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
-          __activeCard.selectTemplate = document.querySelector('canned-response-dialog input').value
           document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
           await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
           __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
@@ -411,7 +422,7 @@
 
     async function autoFill() {
       let selectedTemp = __qaData.reduce((acc, e) => {
-        return e.crCode === __activeCard.selectTemplate ? e : acc
+        return e.crCode === __activeCard.selectedTemp ? e : acc
       })
 
       console.log(selectedTemp)
@@ -568,7 +579,7 @@
         $(window).on("mouseover", dragModal);
         $(window).on("click", (e) => {
           $(e.target).is('#showTime') ? console.log('ShowTime Clicked')
-            : $(e.target).is('#checkButton') ? validarInput()
+            : $(e.target).is('#checkButton') ? validateId()
               : e.target.closest('#closeModal') ? closeModal()
                 : e.target.closest('#circle') ? openModal() : null
         });
@@ -605,11 +616,11 @@
                 $('.alert').addClass("hide")
                 await showSuccess('Execuçao Exitosa!')
                 await removeError()
-                await showDefault('Aguardando instruçoes')
+                await showDefault('Waiting for instructions')
                 $('#temp_type').attr('disabled', false)
                 $('#temp_type').val('default')
                 $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
-                $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
+                $('#showTime').html('Insert<i class="fa fa-cog"></i>')
                 console.log(`%cSucceded execution`, "color: green")
               }
               catch (error) {
@@ -619,7 +630,7 @@
                   $('.alert').addClass("hide")
                   await showError('Preencha todos os campos!')
                   await removeError()
-                  await showDefault('Aguardando instruçoes')
+                  await showDefault('Waiting for instructions')
 
                 }
                 else {
@@ -629,7 +640,7 @@
                   $('.alert').addClass("hide")
                   await showError('Complete seus outros emails')
                   await removeError()
-                  await showDefault('Aguardando instruçoes')
+                  await showDefault('AWaiting for instructions')
                   $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
                   $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
                   console.log('Finished')
