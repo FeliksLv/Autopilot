@@ -1,4 +1,4 @@
-   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -130,8 +130,6 @@
       let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
       if ($(selectType).val() !== 'default') {
-        $(selectEmail).attr('disabled', false)
-        $(selectEmail).val('default');
         $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule()
       }
 
@@ -148,9 +146,13 @@
       //Options  visibility
       for (option of selectEmail) {
         if ($(selectType).val() === "leadGen") {
+          $(selectEmail).attr('disabled', false)
+          $(selectEmail).val('default');
           option.value.includes("lg") ? $(option).show() : $(option).hide()
         }
         if ($(selectType).val() === "tag") {
+          $(selectEmail).attr('disabled', false)
+          $(selectEmail).val('default');
           option.value.includes("ts") ? $(option).show() : $(option).hide()
         }
         if ($(selectType).val() === "external") {
