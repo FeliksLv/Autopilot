@@ -129,59 +129,58 @@
       let selectEmail = document.querySelector('#templateEmail')
       let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
-      if (event.target === selectType) {
-        if ($(selectType).val() !== 'default') {
-          $(selectEmail).attr('disabled', false)
-          $(selectEmail).val('default')
-          $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule()
-        }
+      if ($(selectType).val() !== 'default') {
+        $(selectEmail).attr('disabled', false)
+        $(selectEmail).val('default')
+        $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule()
+      }
 
-        else {
-          $(selectEmail).attr('disabled', true)
-          $(selectEmail).val('default')
+      else {
+        $(selectEmail).attr('disabled', true)
+        $(selectEmail).val('default')
+        reschInputs.forEach((input, i) => {
+          $(input).attr('disabled', true)
+          i === 0 ? $(input).val('') : $(input).val('default')
+        })
+        $('#showTime').attr('disabled', true)
+      }
+
+      //Options  visibility
+      for (option of selectEmail) {
+        if ($(selectType).val() === "leadGen") {
+          option.value.includes("lg") ? $(option).show() : $(option).hide()
+        }
+        if ($(selectType).val() === "tag") {
+          option.value.includes("ts") ? $(option).show() : $(option).hide()
+        }
+        if ($(selectType).val() === "external") {
+          console.log('Coming Soon')
+        }
+      }
+
+      //Handle no Reschedule templates
+      function noReschedule() {
+        if ($(selectEmail).val() !== 'default') {
           reschInputs.forEach((input, i) => {
             $(input).attr('disabled', true)
             i === 0 ? $(input).val('') : $(input).val('default')
           })
+          $('#showTime').attr('disabled', false)
+        }
+        else {
           $('#showTime').attr('disabled', true)
-        }
-
-        //Options  visibility
-        for (option of selectEmail) {
-          if ($(selectType).val() === "leadGen") {
-            option.value.includes("lg") ? $(option).show() : $(option).hide()
-          }
-          if ($(selectType).val() === "tag") {
-            option.value.includes("ts") ? $(option).show() : $(option).hide()
-          }
-          if ($(selectType).val() === "external") {
-            console.log('Coming Soon')
-          }
-        }
-
-        //Handle no Reschedule templates
-        function noReschedule() {
-          if ($(selectEmail).val() !== 'default') {
-            reschInputs.forEach((input, i) => {
-              $(input).attr('disabled', true)
-              i === 0 ? $(input).val('') : $(input).val('default')
-            })
-            $('#showTime').attr('disabled', false)
-          }
-          else {
-            $('#showTime').attr('disabled', true)
-            reschInputs.forEach((input, i) => {
-              $(input).attr('disabled', true)
-              i === 0 ? $(input).val('') : $(input).val('default')
-            })
-          }
-        }
-        //Handle with Reschedule templates
-        function handleResch() {
-          reschInputs.forEach(input => $(input).attr('disabled', false))
-          reschInputs.every(input => $(input).val() !== '' || $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true)
+          reschInputs.forEach((input, i) => {
+            $(input).attr('disabled', true)
+            i === 0 ? $(input).val('') : $(input).val('default')
+          })
         }
       }
+      //Handle with Reschedule templates
+      function handleResch() {
+        reschInputs.forEach(input => $(input).attr('disabled', false))
+        reschInputs.every(input => $(input).val() !== '' || $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true)
+      }
+
       /*
         //Activa el input de reagendamiento apenas para los templates correspondientes
         if (event.target === selectEmail) {
