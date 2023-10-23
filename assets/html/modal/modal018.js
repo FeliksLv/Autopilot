@@ -140,51 +140,46 @@
           if ($(selectType).val() === "tag") {
             option.value.includes("ts") ? $(option).show() : $(option).hide()
           }
+          if ($(selectType).val() === "external") {
+            console.log('Coming Soon')
+          }
           if ($(selectType).val() === "default") {
             $(selectEmail).attr('disabled', true)
+            $('#showTime').attr('disabled', true)
             reschInputs.forEach((input, i) => {
               $(input).attr('disabled', true)
               i === 0 ? $(input).val('') : $(input).val('default')
             })
-            $('#showTime').attr('disabled', true)
           }
-        }
-        if ($(selectType).val() === "external") {
-          console.log('Coming Soon')
         }
       }
 
       if (event.target === selectEmail) {
-        $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule()
+        $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
+          ? reschInputs.forEach(input => $(input).attr('disabled', false))
+          : noReschedule()
+      }
+
+      if (reschInputs.some(input => event.target === $(input)[0])) {
+        reschInputs.every(input => $(input).val() !== '' || $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true)
       }
 
       //Handle no Reschedule templates
       function noReschedule() {
+        $('#showTime').attr('disabled', false)
         if ($(selectEmail).val() !== 'default') {
-          console.log($(selectEmail).val())
-          console.log('Isnt Default')
           reschInputs.forEach((input, i) => {
             $(input).attr('disabled', true)
             i === 0 ? $(input).val('') : $(input).val('default')
           })
-          $('#showTime').attr('disabled', false)
         }
         else {
-          console.log($(selectEmail).val())
-          console.log('Default')
           $('#showTime').attr('disabled', true)
           reschInputs.forEach((input, i) => {
             $(input).attr('disabled', true)
             i === 0 ? $(input).val('') : $(input).val('default')
           })
         }
-      }
-      //Handle with Reschedule templates
-      function handleResch() {
-        console.log($(selectEmail).val())
-        console.log('Resch')
-        reschInputs.forEach(input => $(input).attr('disabled', false))
-        reschInputs.every(input => $(input).val() !== '' || $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true)
       }
     }
 
