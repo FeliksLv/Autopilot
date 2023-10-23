@@ -147,15 +147,9 @@
       //Options  visibility
       for (option of selectEmail) {
         if ($(selectType).val() === "leadGen") {
-          $(selectEmail).attr('disabled', false)
-          $(selectEmail).val("default")
-
           option.value.includes("lg") ? $(option).show() : $(option).hide()
         }
         if ($(selectType).val() === "tag") {
-          $(selectEmail).attr('disabled', false)
-          $(selectEmail).val("default")
-
           option.value.includes("ts") ? $(option).show() : $(option).hide()
         }
         if ($(selectType).val() === "external") {
