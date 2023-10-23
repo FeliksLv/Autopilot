@@ -130,39 +130,25 @@
       let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
       if (event.target === $(selectType)[0]) {
-        $(selectEmail).attr('disabled', false)
-        $(selectEmail).val('default');
         //Options  visibility
         for (option of selectEmail) {
-          if ($(selectType).val() === "leadGen") {
-            option.value.includes("lg") ? $(option).show() : $(option).hide()
-          }
-          if ($(selectType).val() === "tag") {
-            option.value.includes("ts") ? $(option).show() : $(option).hide()
-          }
-          if ($(selectType).val() === "external") {
-            console.log('Coming Soon')
-          }
-          if ($(selectType).val() === "default") {
-            $(selectEmail).attr('disabled', true)
-            $('#showTime').attr('disabled', true)
-            reschInputs.forEach((input, i) => {
-              $(input).attr('disabled', true)
-              i === 0 ? $(input).val('') : $(input).val('default')
-            })
-          }
+          if ($(selectType).val() === "leadGen") { option.value.includes("lg") ? $(option).show() : $(option).hide() }
+          if ($(selectType).val() === "tag") { option.value.includes("ts") ? $(option).show() : $(option).hide() }
+          if ($(selectType).val() === "default") { $(selectEmail).attr('disabled', true) }
+          if ($(selectType).val() === "external") { console.log('Coming Soon') }
         }
+        $('#showTime').attr('disabled', true)
+        $(selectEmail).attr('disabled', false)
+        $(selectEmail).val('default');
+        reschInputs.forEach((input, i) => {
+          $(input).attr('disabled', true)
+          i === 0 ? $(input).val('') : $(input).val('default')
+        })
       }
 
-      if (event.target === selectEmail) {
-        $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
-          ? reschInputs.forEach(input => $(input).attr('disabled', false))
-          : noReschedule()
-      }
+      if (event.target === selectEmail) { $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
 
-      if (reschInputs.some(input => event.target === $(input)[0])) {
-        reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true)
-      }
+      if (reschInputs.some(input => event.target === $(input)[0])) { reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true) }
 
       //Handle no Reschedule templates
       function noReschedule() {
@@ -180,6 +166,11 @@
             i === 0 ? $(input).val('') : $(input).val('default')
           })
         }
+      }
+
+      function handleResch() {
+        $('#showTime').attr('disabled', true)
+        reschInputs.forEach(input => $(input).attr('disabled', false))
       }
     }
 
