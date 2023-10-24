@@ -231,7 +231,8 @@
               }
             }
           }
-          if ($(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
+          console.log('For OF finished')
+          if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
             let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
               return (bulkData.activeCase === data.case_id ? {
