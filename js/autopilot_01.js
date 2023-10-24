@@ -74,7 +74,7 @@
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/select.html')
+        fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilotModal.html')
           .then(response => {
             if (!response.ok) { reject(new Error('MODAL2 HTML FAILED')) }
             else { return response.text() }
@@ -521,7 +521,7 @@
 
     async function init(resolve) {
       try {
-        await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.css")
+        await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/css/style.css")
         await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
         await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
         await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -544,7 +544,7 @@
     function loadModal() {
       return new Promise(async (resolve) => {
         try {
-          await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/assets/html/modal/modal.html')
+          await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/authModal.html')
             .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
           console.log('MODAL 1 INSERTED')
           await validateKey()
