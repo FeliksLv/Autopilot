@@ -1,4 +1,4 @@
-    @font-face {
+ @font-face {
       font-family: 'Material Symbols Outlined';
       font-style: normal;
       font-weight: 400;
@@ -69,12 +69,12 @@
     .modal-container #myModal {
       display: none;
       width: 450px;
-      height: 330px;
+      height: 310px;
       background: none;
       border-radius: 10px;
       text-align: center;
       border: 2px solid #ccc;
-      padding: 10px;
+      padding-inline: 10px;
       padding-top: 0px;
       z-index: 9998;
       font-family: 'Poppins', sans-serif;
@@ -109,6 +109,10 @@
       /* Adiciona margem direita para cobrir a margem da modal */
       width: 100%;
       /* Largura igual à da modal */
+    }
+
+    .modal-container .modal-body {
+      padding-top: 5px;
     }
 
     /* Estilo para a seção de texto */
