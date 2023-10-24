@@ -436,25 +436,24 @@
     }
 
     async function autoFill() {
-      var htmlContent = __activeCard.element.querySelector('#email-body-content-top-content')
-      let selectedTemp = __qaData.reduce((acc, e) => {
-        return e.crCode === __activeCard.selectedTemp ? e : acc
-      })
+      let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
 
       if (selectedTemp.inputs.appointment) {
-        __activeCard.element.querySelector(selectedTemp.inputs.appointment).innerHTML = __caseData.appointment
+        $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
+        $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field')
       }
       if (selectedTemp.inputs.name) {
-        __activeCard.element.querySelector(selectedTemp.inputs.name).innerHTML = __caseData.name
+        $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name)
+        $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field')
       }
       if (selectedTemp.inputs.phone) {
-        __activeCard.element.querySelector(selectedTemp.inputs.phone).innerHTML = __caseData.phone
+        $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone)
+        $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field')
       }
       if (selectedTemp.inputs.nothing) {
         console.log('No fields');
       }
 
-      htmlContent.innerHTML = htmlContent.innerHTML.replace(/class="field"/g, '')
       console.log("%cAutofilled", "color: green")
     }
 
