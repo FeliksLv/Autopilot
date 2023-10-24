@@ -645,11 +645,9 @@
                   await showError('Preencha todos os campos!')
                   await removeError()
                   await showDefault('Waiting for instructions')
-
                 }
                 else {
                   console.log(error)
-                  /*
                   $('.alert').removeClass("show")
                   $('.alert').addClass("hide")
                   await showError('Complete seus outros emails')
@@ -658,7 +656,6 @@
                   $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
                   $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
                   console.log('Finished')
-                  */
                 }
               }
             })
