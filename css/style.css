@@ -28,6 +28,7 @@
       left: 10px;
       display: flex;
       flex-direction: column;
+      z-index: 9999;
     }
 
     /* Estilo para o círculo roxo animado */
@@ -77,8 +78,8 @@
       z-index: 9998;
       font-family: 'Poppins', sans-serif;
       position: fixed;
-      bottom: 10px;
-      left: 30px;
+      bottom: 35%;
+      left: 1%;
       background-color: #ffffff
     }
 
