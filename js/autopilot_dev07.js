@@ -616,93 +616,91 @@
 
 
     (async function main() {
-      try {
-        await init();
-        const dateConfig = {
-          dateFormat: 'dd-mm-yy',
-          changeMonth: true,
-          changeYear: true,
-          minDate: new Date(),
-          yearRange: "c-0:c+1",
-          dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
-          dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
-          dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-          monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-          monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+      await init();
+      const dateConfig = {
+        dateFormat: 'dd-mm-yy',
+        changeMonth: true,
+        changeYear: true,
+        minDate: new Date(),
+        yearRange: "c-0:c+1",
+        dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
+        dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+        dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+        monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+        monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+      }
+
+      $(window).on("change", handleSelect);
+      $(window).on("mouseover", dragModal);
+      $(window).on("click", (e) => {
+        $(e.target).is('#showTime') ? sendEvent('requested')
+          : $(e.target).is('#checkButton') ? validateId()
+            : e.target.closest('#closeModal') ? closeModal()
+              : e.target.closest('#circle') ? openModal() : null
+      });
+
+      //SAVE CALENDAR ID ON COOKIE STORAGE
+      $(window).on("input", (e) => {
+        if ($(e.target).is('.input-modal > input')) {
+          let date = new Date()
+          date.setDate(date.getDate() + 400)
+          document.cookie = `calendarKey=${$(e.target).val().trim()}; expires=${date.toUTCString()}`
         }
+      })
 
-        $(window).on("change", handleSelect);
-        $(window).on("mouseover", dragModal);
-        $(window).on("click", (e) => {
-          $(e.target).is('#showTime') ? sendEvent('requested')
-            : $(e.target).is('#checkButton') ? validateId()
-              : e.target.closest('#closeModal') ? closeModal()
-                : e.target.closest('#circle') ? openModal() : null
-        });
+      var modalLoaded = setInterval(() => {
+        if ($('#resch_time').length) {
+          //MODAL 2 CONFIG
+          clearInterval(modalLoaded);
+          timePickerConfig()
+          $(function () { $("#resch_date").datepicker(dateConfig) })
 
-        //SAVE CALENDAR ID ON COOKIE STORAGE
-        $(window).on("input", (e) => {
-          if ($(e.target).is('.input-modal > input')) {
-            let date = new Date()
-            date.setDate(date.getDate() + 400)
-            document.cookie = `calendarKey=${$(e.target).val().trim()}; expires=${date.toUTCString()}`
-          }
-        })
+          $('#showTime').on("click", async () => {
+            let selectEmail = document.querySelector('#templateEmail')
+            let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
-        var modalLoaded = setInterval(() => {
-          if ($('#resch_time').length) {
-            //MODAL 2 CONFIG
-            clearInterval(modalLoaded);
-            timePickerConfig()
-            $(function () { $("#resch_date").datepicker(dateConfig) })
+            //Remove Default + Transition
+            $('#showTime').html('Carregando<i class="fa fa-cog fa-spin"></i>')
+            $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+            $('.alert').removeClass("show")
+            $('.alert').addClass("hide")
+            showDefault('Working...')
 
-            $('#showTime').on("click", async () => {
-              let selectEmail = document.querySelector('#templateEmail')
-              let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
-
-              //Remove Default + Transition
-              $('#showTime').html('Carregando<i class="fa fa-cog fa-spin"></i>')
-              $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+            try {
+              await attachEmail()
               $('.alert').removeClass("show")
               $('.alert').addClass("hide")
-              showDefault('Working...')
+              await showSuccess()
+              await removeError()
+              await showDefault()
 
-              try {
-                await attachEmail()
-                $('.alert').removeClass("show")
-                $('.alert').addClass("hide")
-                await showSuccess()
-                await removeError()
-                await showDefault()
+              $('#temp_type').attr('disabled', false)
+              $('#temp_type').val('default')
+              $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
+              $('#showTime').html('Insert<i class="fa fa-cog"></i>')
 
-                $('#temp_type').attr('disabled', false)
-                $('#temp_type').val('default')
-                $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
-                $('#showTime').html('Insert<i class="fa fa-cog"></i>')
-
-                console.log(`%cSucceded execution`, "color: green")
-                sendEvent('successfuly_Attached')
+              console.log(`%cSucceded execution`, "color: green")
+              sendEvent('successfuly_Attached')
+            }
+            catch (err) {
+              console.log(err.includes("MANY EMAIL CARDS OPEN"))
+              if (err.includes("BIFROST BULK ERROR")) {
+                errorClosure('Unexpected error fetching your data')
               }
-              catch (err) {
-                if (err.includes("BIFROST BULK ERROR")) {
-                  errorClosure('Unexpected error fetching your data')
-                }
-                if (err.includes("MANY EMAIL CARDS OPEN")) {
-                  errorClosure('Complete your other emails')
-                }
-                if (err.includes("ERROR ADRESSES UPDATE")) {
-                  errorClosure('Unexpected error')
-                }
-                else {
-                  console.log(err)
-                  console.log(typeof err);
-                  console.log(err.includes("MANY EMAIL CARDS OPEN"))
-                  errorClosure(err)
-                }
+              else if (err.includes("MANY EMAIL CARDS OPEN")) {
+                errorClosure("Complete your other emails")
               }
-            })
-          }
-        }, 100)
-      }
-      catch (error) { console.log(error) }
-    })();
+              else if (err.includes("ERROR ADRESSES UPDATE")) {
+                errorClosure('Unexpected error')
+              }
+              else {
+                console.log(err)
+                console.log(typeof err);
+                console.log(err.includes("MANY EMAIL CARDS OPEN"))
+                errorClosure(err)
+              }
+            }
+          })
+        }
+      }, 100)
+    })()
