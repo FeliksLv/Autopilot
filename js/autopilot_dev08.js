@@ -1,4 +1,4 @@
-    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -299,7 +299,7 @@
 
     async function newEmail() {
       return new Promise(async (resolve) => {
-        if ($('[aria-label="Create a write card"]')) {
+        if ($('[aria-label="Create a write card"]').length) {
           $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
           await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
           $('[aria-label="Create new email"]')[0].click()
