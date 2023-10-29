@@ -682,16 +682,17 @@
                 console.log(`%cSucceded execution`, "color: green")
                 sendEvent('successfuly_Attached')
               }
-              catch (error) {
+              catch (err) {
                 console.log(error)
+                console.log(typeof error.message)
                 console.log(error.message)
-                if (error.message === "BIFROST BULK ERROR") {
+                if (error.message.toString() ==="BIFROST BULK ERROR") {
                   errorClosure('Unexpected error fetching your data')
                 }
-                if (error.message === "MANY EMAIL CARDS OPEN") {
+                if (error.message.toString() ==="MANY EMAIL CARDS OPEN") {
                   errorClosure('Complete your other emails')
                 }
-                if (error.message === "ERROR ADRESSES UPDATE") {
+                if (error.message.toString() ==="ERROR ADRESSES UPDATE") {
                   errorClosure('Unexpected error')
                 }
                 else {
