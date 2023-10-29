@@ -420,7 +420,7 @@
           resolve()
         }
         else {
-          reject(new Error(`MANY EMAIL CARDS OPEN`))
+          reject(new Error('MANY EMAIL CARDS OPEN'))
         }
       })
     }
@@ -569,7 +569,7 @@
           resolve()
         }
         catch (error) {
-          reject(new Error(error))
+          reject(new Error(error.message.toString()))
         }
       })
     };
