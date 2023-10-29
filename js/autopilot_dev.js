@@ -53,7 +53,7 @@
           $('.input-modal > input').prop('disabled', false)
           $('#checkButton').prop('disabled', false)
           $(msgContainer).html("")
-          $(message).text("Erro: Escreva um ID valido!")
+          $(message).text("Error: Insert your own Calendar ID!")
           msgContainer.appendChild(message);
         }
         if (err.message === 'MODAL2 HTML FAILED') {
@@ -232,7 +232,7 @@
               }
             }
           }
-          console.log('For OF finished')
+
           if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
             let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
@@ -267,7 +267,7 @@
         let timer = 0
         const interval = 500
 
-        while (timer < 15000) {
+        while (timer < 20000) {
           if (type === 'sel' && document.querySelectorAll(el)[0]) {
             console.log(`%cSelector ${id} has been found`, "color: orange")
             resolve();
@@ -360,6 +360,7 @@
           return (e.to === 'seller' ? [...acc, e.crCode] : acc)
         }, [])
 
+        await waitForEntity(toField, 'To: Field', 'sel')
         //To seller
         if (sellerTemps.includes(__activeCard.selectedTemp)) {
           console.log("%cTo Seller", "color: orange")
@@ -419,7 +420,7 @@
           resolve()
         }
         else {
-          reject(new Error(`TOO MANY EMAIL CARDS OPEN`))
+          reject(new Error(`MANY EMAIL CARDS OPEN`))
         }
       })
     }
@@ -599,6 +600,19 @@
       gtag('event', event, { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id })
     }
 
+    async function errorClosure(msg) {
+      $('.alert').removeClass("show")
+      $('.alert').addClass("hide")
+      await showError(msg)
+      await removeError()
+      await showDefault()
+      $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
+      $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
+
+      console.log(`%cUnsuccessful Execution`, "color: red")
+      sendEvent('error_Attaching')
+    }
+
 
     (async function main() {
       try {
@@ -645,6 +659,7 @@
               let selectEmail = document.querySelector('#templateEmail')
               let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
+              //Remove Default + Transition
               $('#showTime').html('Carregando<i class="fa fa-cog fa-spin"></i>')
               $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
               $('.alert').removeClass("show")
@@ -665,20 +680,22 @@
                 $('#showTime').html('Insert<i class="fa fa-cog"></i>')
 
                 console.log(`%cSucceded execution`, "color: green")
-                sendEvent('successful_Attaching')
+                sendEvent('successfuly_Attached')
               }
               catch (error) {
                 console.log(error)
-                $('.alert').removeClass("show")
-                $('.alert').addClass("hide")
-                await showError('Complete your other emails')
-                await removeError()
-                await showDefault()
-                $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
-                $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
-                
-                console.log(`%Unsuccessful Execution`, "color: red")
-                sendEvent('error_Attaching')
+                if (error.message === "BIFROST BULK ERROR") {
+                  errorClosure('Unexpected error fetching your data')
+                }
+                if (error.message === "MANY EMAIL CARDS OPEN") {
+                  errorClosure('Complete your other emails')
+                }
+                if (error.message === "ERROR ADRESSES UPDATE") {
+                  errorClosure('Unexpected error')
+                }
+                else {
+                  errorClosure(error.message)
+                }
               }
             })
           }
