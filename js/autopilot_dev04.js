@@ -569,7 +569,7 @@
           resolve()
         }
         catch (error) {
-          throw (error.message.toString())
+          reject(error.message.toString())
         }
       })
     };
