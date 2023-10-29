@@ -1,4 +1,4 @@
-   function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
+    function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
     function qaData(emailData) { return window.__qaData = emailData }
 
     function closeModal() {
@@ -569,7 +569,7 @@
           resolve()
         }
         catch (error) {
-          reject(new Error(error.message))
+          reject(new Error(error))
         }
       })
     };
@@ -686,13 +686,13 @@
                 console.log(err)
                 console.log(typeof err.message)
                 console.log(err.message)
-                if (err.message.toString() === "BIFROST BULK ERROR") {
+                if (err.message === "BIFROST BULK ERROR") {
                   errorClosure('Unexpected error fetching your data')
                 }
-                if (err.message.toString() === "MANY EMAIL CARDS OPEN") {
+                if (err.message === "MANY EMAIL CARDS OPEN") {
                   errorClosure('Complete your other emails')
                 }
-                if (err.message.toString() === "ERROR ADRESSES UPDATE") {
+                if (err.message === "ERROR ADRESSES UPDATE") {
                   errorClosure('Unexpected error')
                 }
                 else {
