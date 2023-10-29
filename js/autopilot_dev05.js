@@ -420,7 +420,7 @@
           resolve()
         }
         else {
-          reject(new Error('MANY EMAIL CARDS OPEN'))
+          reject('MANY EMAIL CARDS OPEN')
         }
       })
     }
@@ -684,10 +684,10 @@
               }
               catch (err) {
                 console.log(err)
-                if (err === "MANY EMAIL CARDS OPEN") {
+                if (err === "BIFROST BULK ERROR") {
                   errorClosure('Unexpected error fetching your data')
                 }
-                if (err === "MANY EMAIL CARDS OPEN") {
+                if (err === 'MANY EMAIL CARDS OPEN') {
                   errorClosure('Complete your other emails')
                 }
                 if (err === "ERROR ADRESSES UPDATE") {
