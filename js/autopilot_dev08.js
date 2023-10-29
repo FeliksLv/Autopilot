@@ -258,7 +258,7 @@
           }
 
         }
-        catch (error) { reject(new Error("BIFROST BULK ERROR")) }
+        catch (error) { reject("BIFROST BULK ERROR") }
       })
     }
 
@@ -299,12 +299,18 @@
 
     async function newEmail() {
       return new Promise(async (resolve) => {
-        $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
-        await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
-        $('[aria-label="Create new email"]')[0].click()
-        console.log("%cCreated email", "color: green")
-        resolve()
+        if ($('[aria-label="Create a write card"]')) {
+          $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
+          await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
+          $('[aria-label="Create new email"]')[0].click()
+          console.log("%cCreated email", "color: green")
+          resolve()
+        }
+        else {
+          reject("WRONG PAGE")
+        }
       })
+
     };
 
     async function getActiveCard() {
@@ -321,7 +327,7 @@
             resolve()
           }
         }
-        reject(new Error(`Entity cards not found`))
+        reject("EMAIL CARD NOT FOUND")
       })
     }
 
@@ -345,7 +351,7 @@
           resolve()
         }
         catch (err) {
-          reject(new Error(`ERROR ADRESSES UPDATE`))
+          reject("ERROR UPDATING ADRESSES")
         }
       })
     }
@@ -458,7 +464,7 @@
       console.log("%cAutofilled", "color: green")
     }
 
-    function showSuccess(msg = 'Successful execution!') {
+    function showSuccess(msg = 'Successful execution') {
       return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["default", "hide"]);
@@ -468,6 +474,7 @@
           $(".msg").text(msg)
           $('.close-btn').show()
           $('.alert').off()
+          sendEvent('successfuly_Attached')
           resolve()
         })
       })
@@ -678,17 +685,14 @@
               $('#temp_type').val('default')
               $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
               $('#showTime').html('Insert<i class="fa fa-cog"></i>')
-
-              console.log(`%cSucceded execution`, "color: green")
-              sendEvent('successfuly_Attached')
             }
             catch (err) {
-              console.log(err.includes("MANY EMAIL CARDS OPEN"))
               console.log(err === "MANY EMAIL CARDS OPEN")
-
-              err.includes("BIFROST BULK ERROR") ? errorClosure('Unexpected error fetching your data')
-                : err.includes("MANY EMAIL CARDS OPEN") ? errorClosure("Send your other emails")
-                  : err.includes("ERROR ADRESSES UPDATE") ? errorClosure('Unexpected error') : errorClosure(err)
+              err === "BIFROST BULK ERROR" ? errorClosure("Error fetching your data")
+                : err === "MANY EMAIL CARDS OPEN" ? errorClosure("Send your other emails!")
+                  : err === "ERROR UPDATING ADRESSES" ? errorClosure('Unexpected error')
+                    : err === "WRONG PAGE" ? errorClosure("Focus a case page")
+                      : err === "EMAIL CARD NOT FOUND" ? errorClosure("Focus a case page") : errorClosure(err)
             }
           })
         }
