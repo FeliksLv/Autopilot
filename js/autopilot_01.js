@@ -53,7 +53,7 @@
           $('.input-modal > input').prop('disabled', false)
           $('#checkButton').prop('disabled', false)
           $(msgContainer).html("")
-          $(message).text("Erro: Escreva um ID valido!")
+          $(message).text("Error: Insert your own Calendar ID!")
           msgContainer.appendChild(message);
         }
         if (err.message === 'MODAL2 HTML FAILED') {
@@ -88,11 +88,7 @@
     function validateKey() {
       return new Promise(async (resolve, reject) => {
         let calendarKey = document.cookie.match(/calendarKey=(.{52})/);
-        console.log(calendarKey)
-        if (calendarKey != null && await updateCalendar(calendarKey[1])) {
-          resolve();
-        }
-        reject(new Error("INVALID CALENDAR_ID"))
+        calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject(new Error("INVALID CALENDAR_ID"))
       })
     }
 
@@ -112,7 +108,6 @@
         while (timer < 4000) {
           if (window.__Bifrost !== undefined && __Bifrost.data.length) {
             console.log(`%cValid Calendar ID`, "color: green")
-            console.log(__Bifrost);
             resolve(true)
             return
           }
@@ -141,8 +136,8 @@
         for (option of selectEmail) {
           if ($(selectType).val() === "leadGen") { option.value.includes("lg") ? $(option).show() : $(option).hide() }
           if ($(selectType).val() === "tag") { option.value.includes("ts") ? $(option).show() : $(option).hide() }
+          if ($(selectType).val() === "external") { option.value.includes("ext") ? $(option).show() : $(option).hide() }
           if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
-          if ($(selectType).val() === "external") { console.log('Coming Soon') }
         }
       }
 
@@ -232,7 +227,7 @@
               }
             }
           }
-          console.log('For OF finished')
+
           if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
             let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
@@ -258,7 +253,7 @@
           }
 
         }
-        catch (error) { reject(new Error("BIFROST BULK ERROR")) }
+        catch (error) { reject("BIFROST BULK ERROR") }
       })
     }
 
@@ -267,7 +262,7 @@
         let timer = 0
         const interval = 500
 
-        while (timer < 15000) {
+        while (timer < 20000) {
           if (type === 'sel' && document.querySelectorAll(el)[0]) {
             console.log(`%cSelector ${id} has been found`, "color: orange")
             resolve();
@@ -298,12 +293,17 @@
 
 
     async function newEmail() {
-      return new Promise(async (resolve) => {
-        $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
-        await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
-        $('[aria-label="Create new email"]')[0].click()
-        console.log("%cCreated email", "color: green")
-        resolve()
+      return new Promise(async (resolve, reject) => {
+        if ($('[aria-label="Create a write card"]').length) {
+          $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
+          await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
+          $('[aria-label="Create new email"]')[0].click()
+          console.log("%cCreated email", "color: green")
+          resolve()
+        }
+        else {
+          reject("WRONG PAGE")
+        }
       })
     };
 
@@ -321,7 +321,7 @@
             resolve()
           }
         }
-        reject(new Error(`Entity cards not found`))
+        reject("EMAIL CARD NOT FOUND")
       })
     }
 
@@ -341,11 +341,11 @@
           await removeDefaultEmails()
           //Update all of the calendar attendees including the seller
           await insertNewEmails()
-          console.log("%cModified Emails", "color: green")
+          console.log("%cModified attendees", "color: green")
           resolve()
         }
         catch (err) {
-          reject(new Error(`ERROR ADRESSES UPDATE`))
+          reject("ERROR UPDATING ADRESSES")
         }
       })
     }
@@ -360,6 +360,7 @@
           return (e.to === 'seller' ? [...acc, e.crCode] : acc)
         }, [])
 
+        await waitForEntity(toField, 'To: Field', 'sel')
         //To seller
         if (sellerTemps.includes(__activeCard.selectedTemp)) {
           console.log("%cTo Seller", "color: orange")
@@ -369,7 +370,6 @@
         }
         //To customer
         else {
-          console.log("%cTo Customer", "color: orange")
           $(toField).val(__caseData.attendees.toString())
           updateInput(toField)
 
@@ -419,7 +419,7 @@
           resolve()
         }
         else {
-          reject(new Error(`TOO MANY EMAIL CARDS OPEN`))
+          reject('MANY EMAIL CARDS OPEN')
         }
       })
     }
@@ -457,7 +457,7 @@
       console.log("%cAutofilled", "color: green")
     }
 
-    function showSuccess(msg) {
+    function showSuccess(msg = 'Successful execution') {
       return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["default", "hide"]);
@@ -467,6 +467,8 @@
           $(".msg").text(msg)
           $('.close-btn').show()
           $('.alert').off()
+
+          gtag('event', 'successfuly_Attached', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id })
           resolve()
         })
       })
@@ -503,7 +505,7 @@
         }, 3000);
       })
     }
-    function showDefault(msg) {
+    function showDefault(msg = 'Waiting for instructions') {
       return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["hide", "error", "success"]);
@@ -518,9 +520,9 @@
       })
     }
 
-
     async function init(resolve) {
       try {
+        await ga4Setup()
         await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/css/style.css")
         await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
         await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
@@ -559,108 +561,127 @@
       return new Promise(async (resolve, reject) => {
         try {
           await validateKey()
-          await bulkBifrost()
           await newEmail()
+          await bulkBifrost()
           await getActiveCard()
           await updateAdresses()
           await insertTemplate()
           await autoFill()
           resolve()
         }
-        catch (error) {
-          reject(new Error(error.message))
-        }
+        catch (error) { reject(error) }
       })
     };
 
-    (async function main() {
-      try {
-        await init();
-        const dateConfig = {
-          dateFormat: 'dd-mm-yy',
-          changeMonth: true,
-          changeYear: true,
-          minDate: new Date(),
-          yearRange: "c-0:c+1",
-          dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
-          dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
-          dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-          monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-          monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    async function ga4Setup() {
+      await loadGA4()
+      var user = JSON.parse(window.clientContext).userEmail.replace('@google.com', '')
+      gtag('config', 'G-XKDBXFPDXE', {
+        'debug_mode': true, 'user_id': user, 'user_properties': {
+          'user_ID': user
         }
+      });
+      gtag('event', 'initialized', { send_to: `G-XKDBXFPDXE` })
+    }
 
-        $(window).on("change", handleSelect);
-        $(window).on("mouseover", dragModal);
-        $(window).on("click", (e) => {
-          $(e.target).is('#showTime') ? console.log('ShowTime Clicked')
-            : $(e.target).is('#checkButton') ? validateId()
-              : e.target.closest('#closeModal') ? closeModal()
-                : e.target.closest('#circle') ? openModal() : null
-        });
+    function loadGA4() {
+      return new Promise((resolve, reject) => {
+        var script = document.createElement('script');
+        script.async = true
+        script.src = "https://www.googletagmanager.com/gtag/js?id=G-XKDBXFPDXE";
+        script.onload = resolve(`Fully loaded`);
+        script.onerror = reject(`Loading error`);
+        document.head.appendChild(script);
+      });
+    }
 
-        //SAVE CALENDAR ID ON COOKIE STORAGE
-        $(window).on("input", (e) => {
-          if ($(e.target).is('.input-modal > input')) {
-            let date = new Date()
-            date.setDate(date.getDate() + 400)
-            document.cookie = `calendarKey=${$(e.target).val().trim()}; expires=${date.toUTCString()}`
-          }
-        })
+    async function errorClosure(msg) {
+      $('.alert').removeClass("show")
+      $('.alert').addClass("hide")
+      await showError(msg)
+      await removeError()
+      await showDefault()
+      $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
+      $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
 
-        var modalLoaded = setInterval(() => {
-          if ($('#resch_time').length) {
-            //MODAL 2 CONFIG
-            clearInterval(modalLoaded);
-            timePickerConfig()
-            $(function () { $("#resch_date").datepicker(dateConfig) })
+      gtag('event', 'error_Attaching', {
+        send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg
+      })
+    }
 
-            $('#showTime').on("click", async () => {
-              let selectEmail = document.querySelector('#templateEmail')
-              let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
-              $('#showTime').html('Carregando<i class="fa fa-cog fa-spin"></i>')
-              $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+    (async function main() {
+      await init();
+      const dateConfig = {
+        dateFormat: 'dd-mm-yy',
+        changeMonth: true,
+        changeYear: true,
+        minDate: new Date(),
+        yearRange: "c-0:c+1",
+        dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
+        dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+        dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+        monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+        monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+      }
+
+      $(window).on("change", handleSelect);
+      $(window).on("mouseover", dragModal);
+      $(window).on("click", (e) => {
+        $(e.target).is('#checkButton') ? validateId()
+          : e.target.closest('#closeModal') ? closeModal()
+            : e.target.closest('#circle') ? openModal()
+              : $(e.target).is('#showTime') ? gtag('event', 'requested', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id }) : null
+      });
+
+      //SAVE CALENDAR ID ON COOKIE STORAGE
+      $(window).on("input", (e) => {
+        if ($(e.target).is('.input-modal > input')) {
+          let date = new Date()
+          date.setDate(date.getDate() + 400)
+          document.cookie = `calendarKey=${$(e.target).val().trim()}; expires=${date.toUTCString()}`
+        }
+      })
+
+      var modalLoaded = setInterval(() => {
+        if ($('#resch_time').length) {
+          //MODAL 2 CONFIG
+          clearInterval(modalLoaded);
+          timePickerConfig()
+          $(function () { $("#resch_date").datepicker(dateConfig) })
+
+          $('#showTime').on("click", async () => {
+            let selectEmail = document.querySelector('#templateEmail')
+            let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
+
+            //Remove Default + Transition
+            $('#showTime').html('Loading<i class="fa fa-cog fa-spin"></i>')
+            $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+            $('.alert').removeClass("show")
+            $('.alert').addClass("hide")
+            showDefault('Working...')
+
+            try {
+              await attachEmail()
               $('.alert').removeClass("show")
               $('.alert').addClass("hide")
-              showDefault('Trabalhando...')
+              await showSuccess()
+              await removeError()
+              await showDefault()
 
-              try {
-                await attachEmail()
-                $('.alert').removeClass("show")
-                $('.alert').addClass("hide")
-                await showSuccess('Execuçao Exitosa!')
-                await removeError()
-                await showDefault('Waiting for instructions')
-                $('#temp_type').attr('disabled', false)
-                $('#temp_type').val('default')
-                $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
-                $('#showTime').html('Insert<i class="fa fa-cog"></i>')
-                console.log(`%cSucceded execution`, "color: green")
-              }
-              catch (error) {
-                if (selectEmail.value.match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)
-                  && reschInputs.some(input => $(input).val() === '' || $(input).val() === 'default')) {
-                  $('.alert').removeClass("show")
-                  $('.alert').addClass("hide")
-                  await showError('Preencha todos os campos!')
-                  await removeError()
-                  await showDefault('Waiting for instructions')
-                }
-                else {
-                  console.log(error)
-                  $('.alert').removeClass("show")
-                  $('.alert').addClass("hide")
-                  await showError('Complete your other emails')
-                  await removeError()
-                  await showDefault('Waiting for instructions')
-                  $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
-                  $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
-                  console.log('Finished')
-                }
-              }
-            })
-          }
-        }, 100)
-      }
-      catch (error) { }
+              $('#temp_type').attr('disabled', false)
+              $('#temp_type').val('default')
+              $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
+              $('#showTime').html('Insert<i class="fa fa-cog"></i>')
+            }
+            catch (err) {
+              err === "BIFROST BULK ERROR" ? errorClosure("Error fetching your data")
+                : err === "MANY EMAIL CARDS OPEN" ? errorClosure("Send your other emails!")
+                  : err === "ERROR UPDATING ADRESSES" ? errorClosure('Unexpected error')
+                    : err === "WRONG PAGE" ? errorClosure("Focus a case page")
+                      : err === "EMAIL CARD NOT FOUND" ? errorClosure("Focus a case page") : errorClosure(err)
+            }
+          })
+        }
+      }, 100)
     })();
