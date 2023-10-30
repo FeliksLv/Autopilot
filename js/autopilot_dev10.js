@@ -88,11 +88,7 @@
     function validateKey() {
       return new Promise(async (resolve, reject) => {
         let calendarKey = document.cookie.match(/calendarKey=(.{52})/);
-        console.log(calendarKey)
-        if (calendarKey != null && await updateCalendar(calendarKey[1])) {
-          resolve();
-        }
-        reject(new Error("INVALID CALENDAR_ID"))
+        calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject(new Error("INVALID CALENDAR_ID"))
       })
     }
 
@@ -112,7 +108,6 @@
         while (timer < 4000) {
           if (window.__Bifrost !== undefined && __Bifrost.data.length) {
             console.log(`%cValid Calendar ID`, "color: green")
-            console.log(__Bifrost);
             resolve(true)
             return
           }
@@ -346,7 +341,7 @@
           await removeDefaultEmails()
           //Update all of the calendar attendees including the seller
           await insertNewEmails()
-          console.log("%cModified Emails", "color: green")
+          console.log("%cModified attendees", "color: green")
           resolve()
         }
         catch (err) {
@@ -375,7 +370,6 @@
         }
         //To customer
         else {
-          console.log("%cTo Customer", "color: orange")
           $(toField).val(__caseData.attendees.toString())
           updateInput(toField)
 
@@ -473,7 +467,8 @@
           $(".msg").text(msg)
           $('.close-btn').show()
           $('.alert').off()
-          sendEvent('successfuly_Attached')
+
+          gtag('event', 'successfuly_Attached', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id })
           resolve()
         })
       })
@@ -574,10 +569,7 @@
           await autoFill()
           resolve()
         }
-        catch (error) {
-          console.log(error)
-          reject(error)
-        }
+        catch (error) { reject(error) }
       })
     };
 
@@ -603,10 +595,6 @@
       });
     }
 
-    function sendEvent(event) {
-      gtag('event', event, { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id })
-    }
-
     async function errorClosure(msg) {
       $('.alert').removeClass("show")
       $('.alert').addClass("hide")
@@ -616,8 +604,9 @@
       $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
       $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
 
-      console.log(`%cUnsuccessful Execution`, "color: red")
-      sendEvent('error_Attaching')
+      gtag('event', 'error_Attaching', {
+        send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg
+      })
     }
 
 
@@ -639,10 +628,10 @@
       $(window).on("change", handleSelect);
       $(window).on("mouseover", dragModal);
       $(window).on("click", (e) => {
-        $(e.target).is('#showTime') ? sendEvent('requested')
-          : $(e.target).is('#checkButton') ? validateId()
-            : e.target.closest('#closeModal') ? closeModal()
-              : e.target.closest('#circle') ? openModal() : null
+        $(e.target).is('#checkButton') ? validateId()
+          : e.target.closest('#closeModal') ? closeModal()
+            : e.target.closest('#circle') ? openModal()
+              : $(e.target).is('#showTime') ? gtag('event', 'requested', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id }) : null
       });
 
       //SAVE CALENDAR ID ON COOKIE STORAGE
