@@ -136,8 +136,8 @@
         for (option of selectEmail) {
           if ($(selectType).val() === "leadGen") { option.value.includes("lg") ? $(option).show() : $(option).hide() }
           if ($(selectType).val() === "tag") { option.value.includes("ts") ? $(option).show() : $(option).hide() }
+          if ($(selectType).val() === "external") { option.value.includes("ext") ? $(option).show() : $(option).hide() }
           if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
-          if ($(selectType).val() === "external") { console.log('Coming Soon') }
         }
       }
 
@@ -655,7 +655,7 @@
             let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
 
             //Remove Default + Transition
-            $('#showTime').html('Carregando<i class="fa fa-cog fa-spin"></i>')
+            $('#showTime').html('Loading<i class="fa fa-cog fa-spin"></i>')
             $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
             $('.alert').removeClass("show")
             $('.alert').addClass("hide")
