@@ -24,7 +24,7 @@
     .modal-container {
       position: fixed;
       width: 1vw;
-      bottom: 50%;
+      bottom: 25%;
       left: 10px;
       display: flex;
       flex-direction: column;
@@ -78,7 +78,7 @@
       z-index: 9998;
       font-family: 'Poppins', sans-serif;
       position: fixed;
-      bottom: 35%;
+      bottom: 20%;
       left: 1%;
       background-color: #ffffff
     }
