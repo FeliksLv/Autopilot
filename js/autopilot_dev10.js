@@ -74,7 +74,7 @@
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilotModal.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilotModal.html')
           .then(response => {
             if (!response.ok) { reject(new Error('MODAL2 HTML FAILED')) }
             else { return response.text() }
@@ -407,19 +407,61 @@
     function insertTemplate() {
       return new Promise(async (resolve, reject) => {
         if (document.querySelectorAll('write-deck #email-body-content-top-content').length === 1) {
-          document.querySelector('[aria-label="Insert canned response"]').click()
-          await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
-          document.querySelector('canned-response-dialog input').value = document.querySelector("#templateEmail").value //DYNAMIC
-          document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
-          await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
-          __activeCard.element.querySelector('#email-body-content-top-content').innerHTML = '<p dir="auto"><br></p>'
-          document.querySelector('material-select-dropdown-item span').click()
-          await insertedTempAlert()
-          console.log("%cInserted template ", "color: green")
-          resolve()
+          if ($('#templateEmail').val().includes('ext')) {
+            console.log("External detected");
+            //External template
+            //Put it into main
+            var temp_data = await getExternalTemp()
+            console.log(temp_data)
+            $(__activeCard.element.querySelector('#email-body-content-top-content')).html(temp_data.content)
+          }
+          else {
+            //Non external template
+            console.log("Hotkey detected");
+            document.querySelector('[aria-label="Insert canned response"]').click()
+            await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
+            document.querySelector('canned-response-dialog input').value = $('#templateEmail').val()
+            document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
+            await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
+            $(__activeCard.element.querySelector('#email-body-content-top-content')).html('<p dir="auto"><br></p>')
+            document.querySelector('material-select-dropdown-item span').click()
+            await insertedTempAlert()
+            console.log("%cInserted template ", "color: green")
+            resolve()
+          }
         }
         else {
           reject('MANY EMAIL CARDS OPEN')
+        }
+      })
+    }
+
+    function getExternalTemp() {
+      return new Promise((resolve) => {
+        var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
+        console.log(signature)
+        var ext_files = [
+          { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
+          { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
+          { temp: 'ext 3/9_es', file: 'day3_es.html', title: '[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - {url}' },
+          { temp: 'ext 3/9_pt', file: 'day3_pt.html', title: '[DIA 3 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
+          { temp: 'ext 6/9_es', file: 'day6_es.html', title: '[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - {URL}' },
+          { temp: 'ext 6/9_pt', file: 'day6_pt.html', title: '[DIA 6 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
+          { temp: 'ext mms_es', file: 'mms_es.html', title: '[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web' },
+          { temp: 'ext mms_pt"', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
+        ]
+
+        for (const item of ext_files) {
+          if (item.temp === $('#templateEmail').val()) {
+            console.log(1)
+            fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/templates/${item.file}`)
+              .then(response => {
+                if (!response.ok) { reject('CDN ERROR') }
+                else { return response.text() }
+              }).then(temp => {
+                resolve({ content: `${temp}<br/>${signature}`, title: item.title })
+              })
+          }
         }
       })
     }
@@ -575,13 +617,15 @@
 
     async function ga4Setup() {
       await loadGA4()
+      await new Promise(resolve => setTimeout(resolve, 1000));
       var user = JSON.parse(window.clientContext).userEmail.replace('@google.com', '')
       gtag('config', 'G-XKDBXFPDXE', {
         'debug_mode': true, 'user_id': user, 'user_properties': {
           'user_ID': user
         }
       });
-      gtag('event', 'initialized', { send_to: `G-XKDBXFPDXE` })
+      console.log('Container injected!')
+      gtag('event', 'initialized', { send_to: 'G-XKDBXFPDXE' })
     }
 
     function loadGA4() {
@@ -595,6 +639,13 @@
       });
     }
 
+    function saveCookie(element) {
+      if ($(element.target).is('.input-modal > input')) {
+        let date = new Date()
+        date.setDate(date.getDate() + 400)
+        document.cookie = `calendarKey=${$(element.target).val().trim()}; expires=${date.toUTCString()}`
+      }
+    }
     async function errorClosure(msg) {
       $('.alert').removeClass("show")
       $('.alert').addClass("hide")
@@ -607,8 +658,7 @@
       gtag('event', 'error_Attaching', {
         send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg
       })
-    }
-
+    };
 
     (async function main() {
       await init();
@@ -627,21 +677,13 @@
 
       $(window).on("change", handleSelect);
       $(window).on("mouseover", dragModal);
+      $(window).on("input", saveCookie);
       $(window).on("click", (e) => {
         $(e.target).is('#checkButton') ? validateId()
           : e.target.closest('#closeModal') ? closeModal()
             : e.target.closest('#circle') ? openModal()
-              : $(e.target).is('#showTime') ? gtag('event', 'requested', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id }) : null
+              : $(e.target).is('#showTime') ? console.log('Showtime!') : null
       });
-
-      //SAVE CALENDAR ID ON COOKIE STORAGE
-      $(window).on("input", (e) => {
-        if ($(e.target).is('.input-modal > input')) {
-          let date = new Date()
-          date.setDate(date.getDate() + 400)
-          document.cookie = `calendarKey=${$(e.target).val().trim()}; expires=${date.toUTCString()}`
-        }
-      })
 
       var modalLoaded = setInterval(() => {
         if ($('#resch_time').length) {
