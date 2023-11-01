@@ -202,7 +202,9 @@
       return new Promise(async (resolve, reject) => {
         try {
           $('[aria-label="Case log"]')[0].click()
-          var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id') }
+          $('profile material-button')[0].click()
+          await waitForEntity('profile-details', 'agent_data', 'sel')
+          var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
 
           for (const message of $('.active-case-log-container case-message-view')) {
             if ($(message).html().includes('An appointment has been successfully created')) {
@@ -233,7 +235,7 @@
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
               return (bulkData.activeCase === data.case_id ? {
                 ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website
+                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
               } : acc)
             }, {})
 
@@ -244,7 +246,7 @@
             window.__caseData = __Bifrost.data.reduce((acc, data) => {
               return (bulkData.activeCase === data.case_id ? {
                 ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website
+                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
               } : acc)
             }, {})
 
@@ -408,23 +410,19 @@
       return new Promise(async (resolve, reject) => {
         if (document.querySelectorAll('write-deck #email-body-content-top-content').length === 1) {
           if ($('#templateEmail').val().includes('ext')) {
-            console.log("External detected");
             //External template
-            //Put it into main
             var temp_data = await getExternalTemp()
-            console.log(temp_data)
             $(__activeCard.element.querySelector('#email-body-content-top-content')).html(temp_data.content)
           }
           else {
             //Non external template
-            console.log("Hotkey detected");
-            document.querySelector('[aria-label="Insert canned response"]').click()
+            $('[aria-label="Insert canned response"]')[0].click()
             await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
-            document.querySelector('canned-response-dialog input').value = $('#templateEmail').val()
-            document.querySelector('canned-response-dialog input').dispatchEvent(new Event('input'));
+            $('canned-response-dialog input').val($('#templateEmail').val())
+            $('canned-response-dialog input')[0].dispatchEvent(new Event('input'));
             await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
             $(__activeCard.element.querySelector('#email-body-content-top-content')).html('<p dir="auto"><br></p>')
-            document.querySelector('material-select-dropdown-item span').click()
+            $('material-select-dropdown-item span')[0].click()
             await insertedTempAlert()
             console.log("%cInserted template ", "color: green")
             resolve()
@@ -477,26 +475,38 @@
       })
     }
 
-    async function autoFill() {
-      let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-
-      if (selectedTemp.inputs.appointment) {
-        $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
-        $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field')
-      }
-      if (selectedTemp.inputs.name) {
-        $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name)
-        $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field')
-      }
-      if (selectedTemp.inputs.phone) {
-        $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone)
-        $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field')
-      }
-      if (selectedTemp.inputs.nothing) {
-        console.log('No fields');
-      }
-
-      console.log("%cAutofilled", "color: green")
+    function autoFill() {
+      return new Promise(async (resolve) => {
+        if ($('#templateEmail').val().includes('ext')) {
+          //Logic to autofill external temps
+          var content = $(__activeCard.element.querySelector('#email-body-content-top-content')).html()
+          $(__activeCard.element.querySelector('#email-body-content-top-content')).html(temp_data.content)
+          var mapTerms = { '{advertiser}': __caseData.name, '{phone}': __caseData.phone, '{url}': __caseData.website, '{case_id}': __caseData.case_id }
+          content = content.replace(/\{(?:advertiser|url|case_id|phone)\}/g, matched => mapTerms[matched])
+          $(__activeCard.element.querySelector('#email-body-content-top-content')).html(content)
+          resolve()
+        }
+        else {
+          let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
+          if (selectedTemp.inputs.appointment) {
+            $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
+            $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field')
+          }
+          if (selectedTemp.inputs.name) {
+            $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name)
+            $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field')
+          }
+          if (selectedTemp.inputs.phone) {
+            $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone)
+            $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field')
+          }
+          if (selectedTemp.inputs.nothing) {
+            console.log('No fields');
+          }
+          resolve()
+        }
+        console.log("%cAutofilled", "color: green")
+      })
     }
 
     function showSuccess(msg = 'Successful execution') {
