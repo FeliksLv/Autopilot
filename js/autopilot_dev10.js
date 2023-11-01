@@ -480,7 +480,6 @@
         if ($('#templateEmail').val().includes('ext')) {
           //Logic to autofill external temps
           var content = $(__activeCard.element.querySelector('#email-body-content-top-content')).html()
-          $(__activeCard.element.querySelector('#email-body-content-top-content')).html(temp_data.content)
           var mapTerms = { '{advertiser}': __caseData.name, '{phone}': __caseData.phone, '{url}': __caseData.website, '{case_id}': __caseData.case_id }
           content = content.replace(/\{(?:advertiser|url|case_id|phone)\}/g, matched => mapTerms[matched])
           $(__activeCard.element.querySelector('#email-body-content-top-content')).html(content)
