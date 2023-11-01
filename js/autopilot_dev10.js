@@ -74,7 +74,7 @@
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilotModal.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/autopilot.html')
           .then(response => {
             if (!response.ok) { reject(new Error('MODAL2 HTML FAILED')) }
             else { return response.text() }
@@ -597,7 +597,7 @@
     function loadModal() {
       return new Promise(async (resolve) => {
         try {
-          await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/authModal.html')
+          await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/firstModal.html')
             .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
           console.log('MODAL 1 INSERTED')
           await validateKey()
