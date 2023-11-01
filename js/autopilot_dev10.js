@@ -413,6 +413,7 @@
             //External template
             var temp_data = await getExternalTemp()
             $(__activeCard.element.querySelector('#email-body-content-top-content')).html(temp_data.content)
+            resolve()
           }
           else {
             //Non external template
@@ -451,7 +452,6 @@
 
         for (const item of ext_files) {
           if (item.temp === $('#templateEmail').val()) {
-            console.log(1)
             fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/templates/${item.file}`)
               .then(response => {
                 if (!response.ok) { reject('CDN ERROR') }
@@ -476,7 +476,7 @@
     }
 
     function autoFill() {
-      return new Promise(async (resolve) => {
+      return new Promise(async (resolve, reject) => {
         if ($('#templateEmail').val().includes('ext')) {
           //Logic to autofill external temps
           var content = $(__activeCard.element.querySelector('#email-body-content-top-content')).html()
