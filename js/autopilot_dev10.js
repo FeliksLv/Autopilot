@@ -442,12 +442,12 @@
         var ext_files = [
           { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
           { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
-          { temp: 'ext 3/9_es', file: 'day3_es.html', title: '[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - {url}' },
+          { temp: 'ext 3/9_es', file: 'day3_es.html', title: '[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
           { temp: 'ext 3/9_pt', file: 'day3_pt.html', title: '[DIA 3 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
-          { temp: 'ext 6/9_es', file: 'day6_es.html', title: '[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - {URL}' },
+          { temp: 'ext 6/9_es', file: 'day6_es.html', title: '[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
           { temp: 'ext 6/9_pt', file: 'day6_pt.html', title: '[DIA 6 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
           { temp: 'ext mms_es', file: 'mms_es.html', title: '[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web' },
-          { temp: 'ext mms_pt"', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
+          { temp: 'ext mms_pt', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
         ]
 
         for (const item of ext_files) {
@@ -480,8 +480,8 @@
         if ($('#templateEmail').val().includes('ext')) {
           //Logic to autofill external temps
           var content = $(__activeCard.element.querySelector('#email-body-content-top-content')).html()
-          var mapTerms = { '{advertiser}': __caseData.name, '{phone}': __caseData.phone, '{url}': __caseData.website, '{case_id}': __caseData.case_id }
-          content = content.replace(/\{(?:advertiser|url|case_id|phone)\}/g, matched => mapTerms[matched])
+          var mapTerms = { '{advertiser}': __caseData.name, '{phone}': __caseData.phone, '{url}': __caseData.website, '{case_id}': __caseData.case_id, '{agent}': __caseData.agent, '{meet}': __caseData.meet }
+          content = content.replace(/\{(?:advertiser|url|case_id|phone|agent|meet)\}/g, matched => mapTerms[matched])
           $(__activeCard.element.querySelector('#email-body-content-top-content')).html(content)
           resolve()
         }
@@ -633,7 +633,6 @@
           'user_ID': user
         }
       });
-      console.log('Container injected!')
       gtag('event', 'initialized', { send_to: 'G-XKDBXFPDXE' })
     }
 
@@ -728,9 +727,10 @@
             catch (err) {
               err === "BIFROST BULK ERROR" ? errorClosure("Error fetching your data")
                 : err === "MANY EMAIL CARDS OPEN" ? errorClosure("Send your other emails!")
-                  : err === "ERROR UPDATING ADRESSES" ? errorClosure('Unexpected error')
+                  : err === "ERROR UPDATING ADRESSES" ? errorClosure('Error attaching emails')
                     : err === "WRONG PAGE" ? errorClosure("Focus a case page")
-                      : err === "EMAIL CARD NOT FOUND" ? errorClosure("Focus a case page") : errorClosure(err)
+                      : err === "EMAIL CARD NOT FOUND" ? errorClosure("Focus a case page")
+                        : err === "CDN ERROR" ? errorClosure("Server error") : errorClosure(err)
             }
           })
         }
