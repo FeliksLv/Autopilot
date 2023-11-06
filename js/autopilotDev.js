@@ -230,30 +230,34 @@
             }
           }
 
-          if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
-            let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
-            window.__caseData = __Bifrost.data.reduce((acc, data) => {
-              return (bulkData.activeCase === data.case_id ? {
-                ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
-              } : acc)
-            }, {})
+          if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
+            if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
+              let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
+              window.__caseData = __Bifrost.data.reduce((acc, data) => {
+                return (bulkData.activeCase === data.case_id ? {
+                  ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
+                  name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
+                } : acc)
+              }, {})
 
-            console.log(__caseData)
-            resolve()
+              console.log(__caseData)
+
+              resolve()
+            }
+            else {
+              window.__caseData = __Bifrost.data.reduce((acc, data) => {
+                return (bulkData.activeCase === data.case_id ? {
+                  ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
+                  name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
+                } : acc)
+              }, {})
+
+              console.log(__caseData)
+
+              resolve()
+            }
           }
-          else {
-            window.__caseData = __Bifrost.data.reduce((acc, data) => {
-              return (bulkData.activeCase === data.case_id ? {
-                ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
-              } : acc)
-            }, {})
-
-            console.log(__caseData)
-            resolve()
-          }
-
+          else { reject("CASE NOT FOUND") }
         }
         catch (error) { reject("BIFROST BULK ERROR") }
       })
@@ -297,10 +301,13 @@
     async function newEmail() {
       return new Promise(async (resolve, reject) => {
         if ($('[aria-label="Create a write card"]').length) {
+          var cards = $('write-deck #email-body-content-top-content').length
           $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
           await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
           $('[aria-label="Create new email"]')[0].click()
+
           console.log("%cCreated email", "color: green")
+          await newEmailAlert(cards)
           resolve()
         }
         else {
@@ -308,6 +315,24 @@
         }
       })
     };
+
+    function newEmailAlert(length) {
+      return new Promise((resolve, reject) => {
+        var init = $('write-deck #email-body-content-top-content').length
+        var interval = setInterval(() => {
+          if ($('write-deck #email-body-content-top-content').length !== length) {
+            if ($('write-deck #email-body-content-top-content').length === 1) {
+              resolve()
+              clearInterval(interval)
+            }
+            else {
+              reject('MANY EMAIL CARDS OPEN')
+              clearInterval(interval)
+            }
+          }
+        }, 100)
+      })
+    }
 
     async function getActiveCard() {
       return new Promise((resolve, reject) => {
@@ -336,7 +361,8 @@
           //Timeout
           __activeCard.element.querySelector('.address[buttoncontent]').click();
           await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
-          [...document.querySelectorAll(dropdownEmails)].pop().click()
+          //Change to: technical-solutions@google.com
+          [...$(`${dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null })
           //Update the attendees
           __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
           await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
@@ -420,7 +446,7 @@
             $('[aria-label="Insert canned response"]')[0].click()
             await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
             $('canned-response-dialog input').val($('#templateEmail').val())
-            $('canned-response-dialog input')[0].dispatchEvent(new Event('input'));
+            $('canned-response-dialog input')[0].dispatchEvent(new Event('input', { bubbles: true }));
             await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
             $(__activeCard.element.querySelector('#email-body-content-top-content')).html('<p dir="auto"><br></p>')
             $('material-select-dropdown-item span')[0].click()
@@ -438,7 +464,6 @@
     function getExternalTemp() {
       return new Promise((resolve) => {
         var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
-        console.log(signature)
         var ext_files = [
           { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
           { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
@@ -509,7 +534,7 @@
     }
 
     function showSuccess(msg = 'Successful execution') {
-      return new Promise(async (resolve) => {
+      return new Promise((resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["default", "hide"]);
           $('.alert > span:first-child').removeClass(["fa-magic"]);
@@ -525,7 +550,7 @@
       })
     }
     function showError(msg) {
-      return new Promise(async (resolve) => {
+      return new Promise((resolve) => {
         $('.alert').on("animationend", (e) => {
           $('.alert').removeClass(["default", "hide"]);
           $('.alert > span:first-child').removeClass(["fa-magic"]);
@@ -539,7 +564,7 @@
       })
     }
     function removeError() {
-      return new Promise(async (resolve) => {
+      return new Promise((resolve) => {
         $(".close-btn").on("click", (e) => {
           $('.alert').removeClass("show");
           $('.alert').addClass("hide");
@@ -730,7 +755,8 @@
                   : err === "ERROR UPDATING ADRESSES" ? errorClosure('Error attaching emails')
                     : err === "WRONG PAGE" ? errorClosure("Focus a case page")
                       : err === "EMAIL CARD NOT FOUND" ? errorClosure("Focus a case page")
-                        : err === "CDN ERROR" ? errorClosure("Server error") : errorClosure(err)
+                        : err === "CASE NOT FOUND" ? errorClosure("Case not found in your calendar")
+                          : err === "CDN ERROR" ? errorClosure("Unexpected server error") : errorClosure(err)
             }
           })
         }
