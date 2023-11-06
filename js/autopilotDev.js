@@ -300,19 +300,22 @@
 
     async function newEmail() {
       return new Promise(async (resolve, reject) => {
-        if ($('[aria-label="Create a write card"]').length) {
-          var cards = $('write-deck #email-body-content-top-content').length
-          $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
-          await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
-          $('[aria-label="Create new email"]')[0].click()
+        try {
+          if ($('[aria-label="Create a write card"]').length) {
+            var cards = $('write-deck #email-body-content-top-content').length
+            $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
+            await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
+            $('[aria-label="Create new email"]')[0].click()
 
-          console.log("%cCreated email", "color: green")
-          await newEmailAlert(cards)
-          resolve()
+            console.log("%cCreated email", "color: green")
+            await newEmailAlert(cards)
+            resolve()
+          }
+          else {
+            reject("WRONG PAGE")
+          }
         }
-        else {
-          reject("WRONG PAGE")
-        }
+        catch (error) { reject(error) }
       })
     };
 
