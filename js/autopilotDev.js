@@ -599,27 +599,29 @@ function showDefault(msg = 'Waiting for instructions') {
   })
 }
 
-async function init(resolve, reject) {
-  try {
-    await ga4Setup()
-    await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
-    await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
-    await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
-    await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await loadModal()
-    await loadScript('https://momentjs.com/downloads/moment.min.js');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
-    await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
-    await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
-    resolve()
-  }
-  catch (error) {
-    console.error('Erro ao carregar CDN');
-  }
+function init() {
+  return new Promise(async (resolve) => {
+    try {
+      await ga4Setup()
+      await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
+      await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
+      await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
+      await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await loadModal()
+      await loadScript('https://momentjs.com/downloads/moment.min.js');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
+      await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
+      await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
+      resolve()
+    }
+    catch (error) {
+      console.error('Erro ao carregar CDN');
+    }
+  })
 }
 
 /*User AUTH*/
