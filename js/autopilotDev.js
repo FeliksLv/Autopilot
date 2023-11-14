@@ -634,6 +634,7 @@ function loadModal() {
       resolve()
     }
     catch (err) {
+      console.log("%cNew user", "color: green")
       resolve()
     }
   })
