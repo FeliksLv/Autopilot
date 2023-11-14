@@ -626,15 +626,14 @@ async function init(resolve, reject) {
 function loadModal() {
   return new Promise(async (resolve) => {
     try {
+      await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/firstModal.html')
+        .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
       await validateKey()
       await insertModal2()
       console.log("%cAuthenticated user", "color: green")
       resolve()
     }
     catch (err) {
-      await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/firstModal.html')
-        .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
-      console.log("%cNew user", "color: green")
       resolve()
     }
   })
