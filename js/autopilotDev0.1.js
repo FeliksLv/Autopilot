@@ -37,9 +37,10 @@ function loadCSS(url) {
 //Valida o Calendar ID (MODAL 1)
 async function validateId() {
   const input = $(".modal-input input").val()
+  let calendarId = document.cookie.match(/calendarKey=(.{52})/);
+
   const msgContainer = document.querySelector(".message-container")
   const message = document.createElement("div")
-  let calendarId = document.cookie.match(/calendarKey=(.{52})/);
   $('.input-modal > input').prop('disabled', true)
   $('#checkButton').prop('disabled', true)
 
@@ -365,7 +366,7 @@ async function updateAdresses() {
       __activeCard.element.querySelector('.address[buttoncontent]').click();
       await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
       //Change to: technical-solutions@google.com
-      [...$(`${dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null })
+      [...$(`${dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : reject("TECHSOL WASN´T FOUND") })
       //Update the attendees
       __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
       await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
@@ -376,6 +377,7 @@ async function updateAdresses() {
       resolve()
     }
     catch (err) {
+      console.log(err)
       reject("ERROR UPDATING ADRESSES")
     }
   })
@@ -504,7 +506,8 @@ function insertedTempAlert() {
 }
 
 function autoFill() {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve) => {
+    let inputEvent = new Event('input', { bubbles: true });
     if ($('#templateEmail').val().includes('ext')) {
       //Logic to autofill external temps
       var content = $(__activeCard.element.querySelector('#email-body-content-top-content')).html()
@@ -515,6 +518,9 @@ function autoFill() {
     }
     else {
       let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
+      let sections = __activeCard.element.getElementsByTagName('tr')
+
+
       if (selectedTemp.inputs.appointment) {
         $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
         $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field')
@@ -530,8 +536,12 @@ function autoFill() {
       if (selectedTemp.inputs.nothing) {
         console.log('No fields');
       }
+      for (element of sections) {
+        element.innerText === 'Soluciones Técnicas de Google' || element.innerText === 'Soluções técnicas da Google' ? element.remove() : null
+      }
       resolve()
     }
+    __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(inputEvent)
     console.log("%cAutofilled", "color: green")
   })
 }
