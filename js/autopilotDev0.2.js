@@ -696,7 +696,7 @@ function saveCookie(element) {
   if ($(element.target).is('.input-modal > input')) {
     let date = new Date()
     date.setDate(date.getDate() + 400)
-    document.cookie = `calendarKey=${$(element.target).val().trim()}; expires=${date.toUTCString()}`
+    document.cookie = `calendarKey=${$(element.target).val().trim()}; expires=${date.toUTCString()}; Priority=High`
   }
 }
 async function errorClosure(msg) {
