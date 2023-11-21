@@ -537,7 +537,7 @@ function autoFill() {
         console.log('No fields');
       }
       for (element of sections) {
-        element.innerText === 'Soluciones Técnicas de Google' || element.innerText === 'Soluções técnicas da Google' ? element.remove() : null
+        (element.innerText.includes('Soluciones') || element.innerText.includes('Soluções')) && element.innerText.split(' ').length === 4 ? element.remove() : null
       }
       resolve()
     }
@@ -696,7 +696,7 @@ function saveCookie(element) {
   if ($(element.target).is('.input-modal > input')) {
     let date = new Date()
     date.setDate(date.getDate() + 400)
-    document.cookie = `calendarKey=${$(element.target).val().trim()}; expires=${date.toUTCString()}`
+    document.cookie = `calendarKey=${$(element.target).val().trim()}; expires=${date.toUTCString()}; Priority=High`
   }
 }
 async function errorClosure(msg) {
