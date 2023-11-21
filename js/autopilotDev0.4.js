@@ -556,7 +556,7 @@ function autoFill() {
                 console.log('No fields');
             }
             for (element of sections) {
-                element.innerText === 'Soluciones Técnicas de Google' || element.innerText === 'Soluções técnicas da Google' ? element.remove() : null
+                (element.innerText.includes('Soluciones') || element.innerText.includes('Soluções')) && element.innerText.split(' ').length === 4 ? element.remove() : null
             }
             resolve()
         }
