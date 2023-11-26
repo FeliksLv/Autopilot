@@ -34,11 +34,8 @@ function loadCSS(url) {
     });
 }
 
-//Valida o Calendar ID (MODAL 1)
+//Calendar ID Validation 
 async function validateId() {
-    const input = $(".modal-input input").val()
-    let calendarId = document.cookie.match(/calendarKey=(.{52})/);
-
     const msgContainer = document.querySelector(".message-container")
     const message = document.createElement("div")
     $('.input-modal > input').prop('disabled', true)
@@ -49,15 +46,15 @@ async function validateId() {
         await insertModal2()
     }
     catch (err) {
-        if (err.message === 'INVALID CALENDAR_ID') {
-            //Reativa os inputs do modal 1 para refazer a validação
+        //Reactivates the input fields of modal 1
+        if (err === 'INVALID CALENDAR_ID') {
             $('.input-modal > input').prop('disabled', false)
             $('#checkButton').prop('disabled', false)
             $(msgContainer).html("")
             $(message).text("Error: Insert your own Calendar ID!")
             msgContainer.appendChild(message);
         }
-        if (err.message === 'MODAL2 HTML FAILED') {
+        if (err === 'MODAL2 HTML FAILED') {
             $('.input-modal > input').prop('disabled', false)
             $('#checkButton').prop('disabled', false)
             $(msgContainer).html("")
@@ -77,7 +74,7 @@ function insertModal2() {
         //Criacao da div que contem os select
         await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/autopilot.html')
             .then(response => {
-                if (!response.ok) { reject(new Error('MODAL2 HTML FAILED')) }
+                if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
             }).then(temp => {
                 $('.modal-select').html(temp)
@@ -94,7 +91,7 @@ function validateKey() {
 }
 
 function updateCalendar(key) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
         let timer = 0
         const interval = 200
 
@@ -169,7 +166,6 @@ function handleSelect(event) {
         reschInputs.forEach(input => $(input).attr('disabled', false))
     }
 }
-
 //Make the modal draggable
 function dragModal(event) {
     if (event.target.closest('.modal-header')) {
@@ -264,18 +260,15 @@ function bulkBifrost() {
                 }
                 else {
                     window.__caseData = __Bifrost.data.reduce((acc, data) => {
-
-                        console.log('bulkData no resch')
-                        console.log(bulkData)
-
                         return (bulkData.activeCase === data.case_id ? {
                             ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
                             name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
                         } : acc)
                     }, {})
 
+                    console.log('bulkData no resch')
+                    console.log(bulkData)
                     console.log(__caseData)
-
                     resolve()
                 }
             }
@@ -369,7 +362,6 @@ async function getActiveCard() {
                     'type': $(element).attr('card-type'),
                     'selectedTemp': $("#templateEmail").val()
                 }
-                console.log(`%c${window.__activeCard.type} card detected`, "color: green")
                 resolve()
             }
         }
@@ -383,7 +375,7 @@ async function updateAdresses() {
             //Update the sender
             let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
             await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
-            //Timeout
+            //Open the email list
             __activeCard.element.querySelector('.address[buttoncontent]').click();
             await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
             //Change to: technical-solutions@google.com
@@ -391,8 +383,9 @@ async function updateAdresses() {
             //Update the attendees
             __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
             await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
+            //Remove default emails
             await removeDefaultEmails()
-            //Update all of the calendar attendees including the seller
+            //Update all calendar attendees including the seller
             await insertNewEmails()
             console.log("%cModified attendees", "color: green")
             resolve()
@@ -410,9 +403,7 @@ function insertNewEmails() {
         let ccField = '[aria-label="Enter Cc email address"]'
         let bccField = '[aria-label="Enter Bcc email address"]'
         let bccPrograms = ['Olympus', 'PKA', 'pka']
-        let sellerTemps = __qaData.reduce((acc, e) => {
-            return (e.to === 'seller' ? [...acc, e.crCode] : acc)
-        }, [])
+        let sellerTemps = __qaData.reduce((acc, e) => { return (e.to === 'seller' ? [...acc, e.crCode] : acc) }, [])
 
         await waitForEntity(toField, 'To: Field', 'sel')
         //To seller
@@ -424,6 +415,7 @@ function insertNewEmails() {
         }
         //To customer
         else {
+            console.log("%cTo Customer", "color: orange")
             $(toField).val(__caseData.attendees.toString())
             updateInput(toField)
 
@@ -448,6 +440,7 @@ function insertNewEmails() {
         }
     })
 }
+
 function removeDefaultEmails() {
     return new Promise(async (resolve) => {
         for (const emails of __activeCard.element.querySelectorAll('[aria-label*="Remove"]')) {
@@ -477,7 +470,7 @@ function insertTemplate() {
                 $(__activeCard.element.querySelector('#email-body-content-top-content')).html('<p dir="auto"><br></p>')
                 $('material-select-dropdown-item span')[0].click()
                 await insertedTempAlert()
-                console.log("%cInserted template ", "color: green")
+                console.log("%cCanned response was inserted", "color: green")
                 resolve()
             }
         }
@@ -515,18 +508,6 @@ function getExternalTemp() {
     })
 }
 
-function insertedTempAlert() {
-    return new Promise((resolve) => {
-        var tempInserted = setInterval(() => {
-            if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
-                console.log('INSERTED')
-                clearInterval(tempInserted)
-                resolve()
-            }
-        }, 500)
-    })
-}
-
 function autoFill() {
     return new Promise(async (resolve) => {
         let inputEvent = new Event('input', { bubbles: true });
@@ -541,7 +522,6 @@ function autoFill() {
         else {
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
             let sections = __activeCard.element.getElementsByTagName('tr')
-
 
             if (selectedTemp.inputs.appointment) {
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
@@ -569,14 +549,24 @@ function autoFill() {
     })
 }
 
-function showSuccess(msg = 'Successful execution') {
+function insertedTempAlert() {
     return new Promise((resolve) => {
-        $('.alert').on("animationend", (e) => {
+        var tempInserted = setInterval(() => {
+            if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
+                clearInterval(tempInserted)
+                resolve()
+            }
+        }, 200)
+    })
+}
+function showSuccess() {
+    return new Promise((resolve) => {
+        $('.alert').on("animationend", () => {
             $('.alert').removeClass(["default", "hide"]);
             $('.alert > span:first-child').removeClass(["fa-magic"]);
             $('.alert > span:first-child').addClass("fa-check-circle");
             $('.alert').addClass(["show", "success"]);
-            $(".msg").text(msg)
+            $(".msg").text('Successful execution')
             $('.close-btn').show()
             $('.alert').off()
 
@@ -587,7 +577,7 @@ function showSuccess(msg = 'Successful execution') {
 }
 function showError(msg) {
     return new Promise((resolve) => {
-        $('.alert').on("animationend", (e) => {
+        $('.alert').on("animationend", () => {
             $('.alert').removeClass(["default", "hide"]);
             $('.alert > span:first-child').removeClass(["fa-magic"]);
             $('.alert > span:first-child').addClass("fa-exclamation-circle");
@@ -617,14 +607,14 @@ function removeError() {
         }, 3000);
     })
 }
-function showDefault(msg = 'Waiting for instructions') {
+function showDefault() {
     return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
             $('.alert').removeClass(["hide", "error", "success"]);
             $('.alert > span:first-child').removeClass(["fa-exclamation-circle", "fa-check-circle"]);
             $('.alert > span:first-child').addClass("fa-magic");
             $('.alert').addClass(["show", "default"]);
-            $(".msg").text(msg)
+            $(".msg").text('Waiting for instructions')
             $('.close-btn').hide()
             $('.alert').off()
             resolve()
@@ -640,7 +630,7 @@ function init() {
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await loadModal()
             await loadScript('https://momentjs.com/downloads/moment.min.js');
             await new Promise(resolve => setTimeout(resolve, 1000));
