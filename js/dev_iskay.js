@@ -455,10 +455,18 @@ function insertTemplate() {
     return new Promise(async (resolve, reject) => {
         if (document.querySelectorAll('write-deck #email-body-content-top-content').length === 1) {
             if ($('#templateEmail').val().includes('ext')) {
+                var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
                 //External template
                 var temp_data = await getExternalTemp()
-                $(__activeCard.element.querySelector('#email-body-content-top-content')).html(temp_data.content)
-                resolve()
+                $(__activeCard.element.querySelector('[aria-label="Subject"]')).val(temp_data.title)
+                if ($("#templateEmail").val().includes('mms')) {
+                    $(__activeCard.element.querySelector('#email-body-content-top-content')).html(`${temp_data.content}<br/>${signature}`)     
+                    resolve()
+                }
+                else {
+                    $(__activeCard.element.querySelector('#email-body-content-top-content')).html(`${temp_data.content}<br/>`)
+                    resolve()
+                }
             }
             else {
                 //Non external template
@@ -482,7 +490,7 @@ function insertTemplate() {
 
 function getExternalTemp() {
     return new Promise((resolve) => {
-        var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
+        //var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
         var ext_files = [
             { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
             { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
@@ -496,12 +504,12 @@ function getExternalTemp() {
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').val()) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/templates/${item.file}`)
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
                     }).then(temp => {
-                        resolve({ content: `${temp}<br/>`, title: item.title })
+                        resolve({ content: `${temp}`, title: item.title })
                     })
             }
         }
