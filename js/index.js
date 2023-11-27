@@ -482,7 +482,7 @@ function insertTemplate() {
 
 function getExternalTemp() {
     return new Promise((resolve) => {
-        var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
+        //var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
         var ext_files = [
             { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
             { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
@@ -501,7 +501,7 @@ function getExternalTemp() {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
                     }).then(temp => {
-                        resolve({ content: `${temp}<br/>${signature}`, title: item.title })
+                        resolve({ content: `${temp}<br/>`, title: item.title })
                     })
             }
         }
