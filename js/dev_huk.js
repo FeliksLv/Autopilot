@@ -501,7 +501,7 @@ function getExternalTemp() {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
                     }).then(temp => {
-                        resolve({ content: `${temp}<br/>${signature}`, title: item.title })
+                        resolve({ content: `${temp}<br/>`, title: item.title })
                     })
             }
         }
