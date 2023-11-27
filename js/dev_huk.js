@@ -761,9 +761,6 @@ async function errorClosure(msg) {
             $(function () { $("#resch_date").datepicker(dateConfig) })
 
             $('#showTime').on("click", async () => {
-                let selectEmail = document.querySelector('#templateEmail')
-                let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
-
                 //Remove Default + Transition
                 $('#showTime').html('Loading<i class="fa fa-cog fa-spin"></i>')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
