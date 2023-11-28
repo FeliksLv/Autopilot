@@ -86,7 +86,7 @@ function insertModal2() {
 function validateKey() {
     return new Promise(async (resolve, reject) => {
         let calendarKey = document.cookie.match(/calendarKey=(.{52})/);
-        calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject(new Error("INVALID CALENDAR_ID"))
+        calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject("INVALID CALENDAR_ID")
     })
 }
 
