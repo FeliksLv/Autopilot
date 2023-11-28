@@ -460,7 +460,7 @@ function insertTemplate() {
                 var temp_data = await getExternalTemp()
                 $(__activeCard.element.querySelector('[aria-label="Subject"]')).val(temp_data.title)
                 if ($("#templateEmail").val().includes('mms')) {
-                    $(__activeCard.element.querySelector('#email-body-content-top-content')).html(`${temp_data.content}<br/>${signature}`)     
+                    $(__activeCard.element.querySelector('#email-body-content-top-content')).html(`${temp_data.content}<br/>${signature}`)
                     resolve()
                 }
                 else {
@@ -518,16 +518,26 @@ function getExternalTemp() {
 
 function autoFill() {
     return new Promise(async (resolve) => {
-        let inputEvent = new Event('input', { bubbles: true });
         if ($('#templateEmail').val().includes('ext')) {
             //Logic to autofill external temps
-            var content = $(__activeCard.element.querySelector('#email-body-content-top-content')).html()
-            var mapTerms = { '{advertiser}': __caseData.name, '{phone}': __caseData.phone, '{url}': __caseData.website, '{case_id}': __caseData.case_id, '{agent}': __caseData.agent, '{meet}': __caseData.meet }
-            content = content.replace(/\{(?:advertiser|url|case_id|phone|agent|meet)\}/g, matched => mapTerms[matched])
-            $(__activeCard.element.querySelector('#email-body-content-top-content')).html(content)
+            let emailBody = $(__activeCard.element.querySelector('#email-body-content-top-content'))
+            let emailTitle = $(__activeCard.element.querySelector('[aria-label="Subject"]'))
+            let replacedTerms = /\{(?:advertiser|url|case_id|phone|agent|meet)\}/g
+            let mapTerms = {
+                '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
+                '{url}': __caseData.website, '{case_id}': __caseData.case_id,
+                '{agent}': __caseData.agent, '{meet}': __caseData.meet
+            }
+
+            let content = emailBody.html().replace(replacedTerms, matched => mapTerms[matched])
+            let title = emailTitle.val().replace(replacedTerms, matched => mapTerms[matched])
+
+            emailBody.html(content)
+            emailTitle.val(title)
             resolve()
         }
         else {
+            //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
             let sections = __activeCard.element.getElementsByTagName('tr')
 
@@ -552,7 +562,7 @@ function autoFill() {
             }
             resolve()
         }
-        __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(inputEvent)
+        __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(new Event('input', { bubbles: true }))
         console.log("%cAutofilled", "color: green")
     })
 }
