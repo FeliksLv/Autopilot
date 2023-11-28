@@ -117,10 +117,12 @@
     /* Estilo para a seção de texto */
     .modal-container .modal-text {
       flex: 1;
-      font-size: 15px;
+      font-size: 14.5px;
       text-align: left;
-      /* Justifica o texto à esquerda */
+    }
 
+    .modal-text>p {
+      margin-block: 10px;
     }
 
     .modal-container .modal-input .input-modal {
@@ -220,27 +222,19 @@
       height: 25px;
     }
 
-    .modal-container ol {
+    .modal-container ul {
       padding-left: 20px;
-      margin-bottom: 10px;
+      margin-block: 10px;
     }
-
-    .modal-container a:link {
-      text-decoration: none;
-      color: #000;
-    }
-
 
     .modal-container a:visited {
       text-decoration: none;
       color: #000;
     }
 
-
     .modal-container a:hover {
       text-decoration: none;
     }
-
 
     .modal-container a:active {
       text-decoration: none;
