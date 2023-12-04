@@ -1,13 +1,31 @@
+const conf = {
+    logMessages: '.active-case-log-container case-message-view',
+    agentInfo: 'profile material-button',
+    logMessageContent: '.message-body.message-body1',
+    emailContent: '#email-body-content-top-content',
+    emailTitle: '[aria-label="Subject"]',
+    writeCard_btn: '[aria-label="Create a write card"]',
+    caseLog_btn: '[aria-label="Case log"]',
+    newEmail_btn: '[aria-label="Create new email"]',
+    showCC_btn: '[aria-label="Show CC and BCC fields"]',
+    removeEmail_btn: '[aria-label*="Remove"]',
+    writeCards: 'write-deck #email-body-content-top-content',
+    dropdownEmails: 'material-select-dropdown-item[id*="email-address-id--"]',
+    signature: '#email-body-content-top-content > .replaced:last-child',
+    cannedInput: 'canned-response-dialog input',
+    cannedDropdown: 'material-select-dropdown-item span'
+}
+
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
 function qaData(emailData) { return window.__qaData = emailData }
 
 function closeModal() {
-    $('#myModal').hide(); // Exibe a modal
-    $('#circle').css("display", "flex");
+    $('#myModal').hide()
+    $('#circle').css("display", "flex")
 }
 
 function openModal() {
-    $('#myModal').show(); // Exibe a modal
+    $('#myModal').show()
     $('#circle').hide()
 }
 
@@ -58,7 +76,7 @@ async function validateId() {
             $('.input-modal > input').prop('disabled', false)
             $('#checkButton').prop('disabled', false)
             $(msgContainer).html("")
-            $(message).text("Erro de servidor")
+            $(message).text("Server error")
             msgContainer.appendChild(message);
         }
     }
@@ -116,7 +134,7 @@ function updateCalendar(key) {
         console.log(`%cProblems requesting these Calendar ID`, "color: red")
         resolve(false)
     })
-};
+}
 
 //Handles select tags visibility
 function handleSelect(event) {
@@ -196,35 +214,36 @@ function getActiveTab() {
         return ($(e).attr('style') === '' ? e : acc)
     })
 }
+
 //Creates __caseData responsible for save all data of the current active case 
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
-            $('[aria-label="Case log"]')[0].click()
-            $('profile material-button')[0].click()
+            $(conf.caseLog_btn)[0].click()
+            $(conf.agentInfo)[0].click()
             await waitForEntity('profile-details', 'agent_data', 'sel')
             var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
 
             console.log('bulkData')
             console.log(bulkData)
 
-            for (const message of $('.active-case-log-container case-message-view')) {
+            for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
                     message.querySelector('div > div').click()
-                    await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
+                    await waitForEntity(conf.logMessageContent, 'extra_information', 'from', message)
                     var region = /(?<=\[)(.*?)(?=\])/
-                    var richContent = $(message.querySelector('.message-body.message-body1')).text()
+                    var richContent = $(message.querySelector(conf.logMessageContent)).text()
 
                     console.log('bulkData base')
                     console.log(bulkData)
 
                     //Get Name only returns DEFAULT on tabs other than a case tab
                     bulkData.timezone = richContent.match(region)[0];
-                    bulkData.name = [...document.querySelectorAll('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT')
+                    bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'Default')
                 }
                 else if ($(message).html().includes('Review case in Connect Sales')) {
                     message.querySelector('div > div').click()
-                    await waitForEntity('.message-body.message-body1', 'extra_information', 'from', message)
+                    await waitForEntity(conf.logMessageContent, 'extra_information', 'from', message)
                     let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim()
                     bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() }
 
@@ -255,7 +274,6 @@ function bulkBifrost() {
                     }, {})
 
                     console.log(__caseData)
-
                     resolve()
                 }
                 else {
@@ -299,7 +317,7 @@ function waitForEntity(el, id, type, origin) {
         }
         reject(new Error(`%cEntity ${id} was not found`))
     })
-};
+}
 
 function loadScript(url) {
     return new Promise((resolve, reject) => {
@@ -312,15 +330,14 @@ function loadScript(url) {
     });
 }
 
-
 async function newEmail() {
     return new Promise(async (resolve, reject) => {
         try {
-            if ($('[aria-label="Create a write card"]').length) {
-                var cards = $('write-deck #email-body-content-top-content').length
-                $('[aria-label="Create a write card"]')[0].dispatchEvent(new Event('focus'))
-                await waitForEntity('[aria-label="Create new email"]', 'Lateral_bar', 'sel')
-                $('[aria-label="Create new email"]')[0].click()
+            if ($(conf.writeCard_btn).length) {
+                var cards = $(conf.writeCards).length
+                $(conf.writeCard_btn)[0].dispatchEvent(new Event('focus'))
+                await waitForEntity(conf.newEmail_btn, 'Lateral_bar', 'sel')
+                $(conf.newEmail_btn)[0].click()
 
                 console.log("%cCreated email", "color: green")
                 await newEmailAlert(cards)
@@ -336,10 +353,9 @@ async function newEmail() {
 
 function newEmailAlert(length) {
     return new Promise((resolve, reject) => {
-        var init = $('write-deck #email-body-content-top-content').length
         var interval = setInterval(() => {
-            if ($('write-deck #email-body-content-top-content').length !== length) {
-                if ($('write-deck #email-body-content-top-content').length === 1) {
+            if ($(conf.writeCards).length !== length) {
+                if ($(conf.writeCards).length === 1) {
                     resolve()
                     clearInterval(interval)
                 }
@@ -356,7 +372,8 @@ async function getActiveCard() {
     return new Promise((resolve, reject) => {
         let cards = getActiveTab().querySelectorAll('card')
         for (const element of cards) {
-            if ($(element).attr('aria-hidden') === 'false' && $(element).attr('card-type') === "compose") {
+            //$(element).attr('aria-hidden') === 'false' && 
+            if ($(element).attr('card-type') === "compose") {
                 window.__activeCard = {
                     'element': element,
                     'type': $(element).attr('card-type'),
@@ -365,6 +382,8 @@ async function getActiveCard() {
                 resolve()
             }
         }
+
+        console.log("%cCompose card wasn't found", "color: green")
         reject("EMAIL CARD NOT FOUND")
     })
 }
@@ -373,15 +392,14 @@ async function updateAdresses() {
     return new Promise(async (resolve, reject) => {
         try {
             //Update the sender
-            let dropdownEmails = 'material-select-dropdown-item[id*="email-address-id--"]';
             await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
             //Open the email list
             __activeCard.element.querySelector('.address[buttoncontent]').click();
-            await waitForEntity(dropdownEmails, 'dropdownEmails', 'sel');
+            await waitForEntity(conf.dropdownEmails, 'dropdownEmails', 'sel');
             //Change to: technical-solutions@google.com
-            [...$(`${dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null })
+            [...$(`${conf.dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null })
             //Update the attendees
-            __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]') ? __activeCard.element.querySelector('[aria-label="Show CC and BCC fields"]').click() : null
+            __activeCard.element.querySelector(conf.showCC_btn) ? __activeCard.element.querySelector(conf.showCC_btn).click() : null
             await waitForEntity('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element)
             //Remove default emails
             await removeDefaultEmails()
@@ -443,40 +461,41 @@ function insertNewEmails() {
 
 function removeDefaultEmails() {
     return new Promise(async (resolve) => {
-        for (const emails of __activeCard.element.querySelectorAll('[aria-label*="Remove"]')) {
-            __activeCard.element.querySelector('[aria-label*="Remove"]').click()
+        for (const emails of __activeCard.element.querySelectorAll(conf.removeEmail_btn)) {
+            __activeCard.element.querySelector(conf.removeEmail_btn).click()
             await new Promise(resolve => setTimeout(resolve, 150));
-            __activeCard.element.querySelectorAll('[aria-label*="Remove"]').length === 0 ? resolve() : null
+            __activeCard.element.querySelectorAll(conf.removeEmail_btn).length === 0 ? resolve() : null
         }
     })
 }
 
+
 function insertTemplate() {
     return new Promise(async (resolve, reject) => {
-        if (document.querySelectorAll('write-deck #email-body-content-top-content').length === 1) {
+        if ($(conf.writeCards).length === 1) {
             if ($('#templateEmail').val().includes('ext')) {
-                var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
+                var signature = $(__activeCard.element.querySelector(conf.signature)).html()
                 //External template
                 var temp_data = await getExternalTemp()
-                $(__activeCard.element.querySelector('[aria-label="Subject"]')).val(temp_data.title)
+                $(__activeCard.element.querySelector(conf.emailTitle)).val(temp_data.title)
                 if ($("#templateEmail").val().includes('mms')) {
-                    $(__activeCard.element.querySelector('#email-body-content-top-content')).html(`${temp_data.content}<br/>${signature}`)
+                    $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>${signature}`)
                     resolve()
                 }
                 else {
-                    $(__activeCard.element.querySelector('#email-body-content-top-content')).html(`${temp_data.content}<br/>`)
+                    $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>`)
                     resolve()
                 }
             }
             else {
                 //Non external template
                 $('[aria-label="Insert canned response"]')[0].click()
-                await waitForEntity('canned-response-dialog input', 'Canned_response input', 'sel')
-                $('canned-response-dialog input').val($('#templateEmail').val())
-                $('canned-response-dialog input')[0].dispatchEvent(new Event('input', { bubbles: true }));
-                await waitForEntity('material-select-dropdown-item span', 'Canned_response Dropdown', 'sel')
-                $(__activeCard.element.querySelector('#email-body-content-top-content')).html('<p dir="auto"><br></p>')
-                $('material-select-dropdown-item span')[0].click()
+                await waitForEntity(conf.cannedInput, 'Canned_response input', 'sel')
+                $(conf.cannedInput).val($('#templateEmail').val())
+                $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
+                await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')
+                $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
+                $(conf.cannedDropdown)[0].click()
                 await insertedTempAlert()
                 console.log("%cCanned response was inserted", "color: green")
                 resolve()
@@ -520,8 +539,8 @@ function autoFill() {
     return new Promise(async (resolve) => {
         if ($('#templateEmail').val().includes('ext')) {
             //Logic to autofill external temps
-            let emailBody = $(__activeCard.element.querySelector('#email-body-content-top-content'))
-            let emailTitle = $(__activeCard.element.querySelector('[aria-label="Subject"]'))
+            let emailBody = $(__activeCard.element.querySelector(conf.emailContent))
+            let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle))
             let replacedTerms = /\{(?:advertiser|url|case_id|phone|agent|meet)\}/g
             let mapTerms = {
                 '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
