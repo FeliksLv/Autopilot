@@ -210,9 +210,9 @@ function timePickerConfig() {
 }
 //Get active cases tab
 function getActiveTab() {
-    return [...$('write-deck > div > div')].reduce((acc, e) => {
-        return ($(e).attr('style') === '' ? e : acc)
-    })
+        return [...$('write-deck > div > div')].reduce((acc, e) => {
+            return ($(e).attr('style') === '' || $(e).attr('style') === undefined ? e : acc)
+        })
 }
 
 //Creates __caseData responsible for save all data of the current active case 
@@ -370,6 +370,7 @@ function newEmailAlert(length) {
 
 async function getActiveCard() {
     return new Promise((resolve, reject) => {
+        //await new Promise(resolve => setTimeout(resolve, 150));
         let cards = getActiveTab().querySelectorAll('card')
         for (const element of cards) {
             //$(element).attr('aria-hidden') === 'false' && 
