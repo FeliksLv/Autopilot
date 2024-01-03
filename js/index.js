@@ -210,9 +210,9 @@ function timePickerConfig() {
 }
 //Get active cases tab
 function getActiveTab() {
-        return [...$('write-deck > div > div')].reduce((acc, e) => {
-            return ($(e).attr('style') === '' || $(e).attr('style') === undefined ? e : acc)
-        })
+    return [...$('write-deck > div > div')].reduce((acc, e) => {
+        return ($(e).attr('style') === '' || $(e).attr('style') === undefined ? e : acc)
+    })
 }
 
 //Creates __caseData responsible for save all data of the current active case 
@@ -241,6 +241,7 @@ function bulkBifrost() {
                     bulkData.timezone = richContent.match(region)[0];
                     bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'Default')
                 }
+                //Extra informations to Non DFA cases
                 else if ($(message).html().includes('Review case in Connect Sales')) {
                     message.querySelector('div > div').click()
                     await waitForEntity(conf.logMessageContent, 'extra_information', 'from', message)
@@ -559,7 +560,7 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-            let sections = __activeCard.element.getElementsByTagName('tr')
+            let sections = __activeCard.element.querySelectorAll('tr p')
 
             if (selectedTemp.inputs.appointment) {
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
@@ -577,9 +578,7 @@ function autoFill() {
                 console.log('No fields');
             }
             //Duplicated signature remotion
-            for (element of sections) {
-                (element.innerText.includes('Soluciones') || element.innerText.includes('Soluções')) && element.innerText.split(' ').length === 4 ? element.remove() : null
-            }
+            for (element of sections) { element.innerText.includes('{%neo.vendor_partner%}') ? element.remove() : null }
             resolve()
         }
         __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(new Event('input', { bubbles: true }))
