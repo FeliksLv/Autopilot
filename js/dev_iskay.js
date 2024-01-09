@@ -219,6 +219,7 @@ function getActiveTab() {
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
+            //Get agent data
             $(conf.caseLog_btn)[0].click()
             $(conf.agentInfo)[0].click()
             await waitForEntity('profile-details', 'agent_data', 'sel')
@@ -227,8 +228,22 @@ function bulkBifrost() {
             console.log('bulkData')
             console.log(bulkData)
 
+            //Defines the case category
+            $(conf.logMessages)[0].querySelector('div > div').click()
+            await waitForEntity(conf.logMessageContent, 'extra_information', 'from', $(conf.logMessages)[0])
+
+            switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
+                case 'Submitted via Greentea Transfer': __activeCard.category = 'Greentea Transfer'; break;
+                case 'Submitted via Help Center Direct to Form':
+                    //FALL THROUGHT
+                case 'Submitted via Transfer': __activeCard.category = 'DFA'; break;
+                default: __activeCard.category = 'Unidentified'
+            }
+
+
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
+                    //Name + Timezone
                     message.querySelector('div > div').click()
                     await waitForEntity(conf.logMessageContent, 'extra_information', 'from', message)
                     var region = /(?<=\[)(.*?)(?=\])/
@@ -241,8 +256,9 @@ function bulkBifrost() {
                     bulkData.timezone = richContent.match(region)[0];
                     bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'Default')
                 }
+
                 //Extra informations to Non DFA cases
-                else if ($(message).html().includes('Review case in Connect Sales')) {
+                else if ($(message).html().includes('Review case in Connect Sales') && __activeCard.category === 'Greentea Transfer') {
                     message.querySelector('div > div').click()
                     await waitForEntity(conf.logMessageContent, 'extra_information', 'from', message)
                     let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim()
@@ -252,43 +268,85 @@ function bulkBifrost() {
                     console.log(bulkData)
 
                     for (const data of $('.message-body.message-body1 tbody > tr')) {
-                        $(data.querySelector('td:first-child')).text() === 'Tasks' ? bulkData.task = $(data.querySelector('td:last-child')).text()
-                            : $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
-                                : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null
+                        $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
+                            : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null
                     }
 
                     console.log('bulkData additionals')
                     console.log(bulkData)
                 }
+
+                //Extra informations to DFA cases
+                else if (__activeCard.category === 'DFA') {
+                    $(conf.logMessages)[0].querySelector('div > div').click()
+                    await waitForEntity(conf.logMessageContent, 'extra_information', 'from', $(conf.logMessages)[0])
+                    console.log('DFA')
+
+                    for (const data of $(conf.logMessages)[0].querySelectorAll('.contactUsFormRows')) {
+                        $(data.querySelector('.form-label')).text() === 'Website URL' ? bulkData.website = $(data.querySelector('a')).text() : null
+                    }
+                }
             }
 
+            //Case Data declaration
             if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
                 if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
                     console.log('bulkData resch')
                     console.log(bulkData)
-                    let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
-                    window.__caseData = __Bifrost.data.reduce((acc, data) => {
-                        return (bulkData.activeCase === data.case_id ? {
-                            ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                            name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
-                        } : acc)
-                    }, {})
+                    if (__activeCard.category === 'DFA') {
+                        let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
+                        window.__caseData = __Bifrost.data.reduce((acc, data) => {
+                            return (bulkData.activeCase === data.case_id ? {
+                                ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
+                                name: bulkData.name, program: 'DFA', sellerInfo: 'none', website: bulkData.website, agent: bulkData.agent
+                            } : acc)
+                        }, {})
 
-                    console.log(__caseData)
-                    resolve()
+                        console.log('Resch Greentea')
+                        console.log(__caseData)
+                        resolve()
+                    }
+                    else {
+                        let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
+                        window.__caseData = __Bifrost.data.reduce((acc, data) => {
+                            return (bulkData.activeCase === data.case_id ? {
+                                ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
+                                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
+                            } : acc)
+                        }, {})
+
+                        console.log('Resch Greentea')
+                        console.log(__caseData)
+                        resolve()
+                    }
                 }
                 else {
-                    window.__caseData = __Bifrost.data.reduce((acc, data) => {
-                        return (bulkData.activeCase === data.case_id ? {
-                            ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                            name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
-                        } : acc)
-                    }, {})
+                    if (__activeCard.category === 'DFA') {
+                        window.__caseData = __Bifrost.data.reduce((acc, data) => {
+                            return (bulkData.activeCase === data.case_id ? {
+                                ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
+                                name: bulkData.name, program: 'DFA', sellerInfo: 'none', website: bulkData.website, agent: bulkData.agent
+                            } : acc)
+                        }, {})
 
-                    console.log('bulkData no resch')
-                    console.log(bulkData)
-                    console.log(__caseData)
-                    resolve()
+                        console.log('bulkData DFA')
+                        console.log(bulkData)
+                        console.log(__caseData)
+                        resolve()
+                    }
+                    else {
+                        window.__caseData = __Bifrost.data.reduce((acc, data) => {
+                            return (bulkData.activeCase === data.case_id ? {
+                                ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
+                                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
+                            } : acc)
+                        }, {})
+
+                        console.log('bulkData Greentea')
+                        console.log(bulkData)
+                        console.log(__caseData)
+                        resolve()
+                    }
                 }
             }
             else { reject("CASE NOT FOUND") }
