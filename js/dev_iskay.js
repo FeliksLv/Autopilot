@@ -230,12 +230,14 @@ function bulkBifrost() {
 
             //Defines the case category
             $(conf.logMessages)[0].querySelector('div > div').click()
-            await waitForEntity(conf.logMessageContent, 'extra_information', 'from', $(conf.logMessages)[0])
+
+            //Fix logMessageContent on GLOBAL
+            await waitForEntity('div.open', 'extra_information', 'from', $(conf.logMessages)[0])
 
             switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
                 case 'Submitted via Greentea Transfer': __activeCard.category = 'Greentea Transfer'; break;
                 case 'Submitted via Help Center Direct to Form':
-                    //FALL THROUGHT
+                    //FALL THROUGH
                 case 'Submitted via Transfer': __activeCard.category = 'DFA'; break;
                 default: __activeCard.category = 'Unidentified'
             }
