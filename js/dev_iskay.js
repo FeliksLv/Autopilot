@@ -436,6 +436,7 @@ async function getActiveCard() {
         for (const element of cards) {
             //$(element).attr('aria-hidden') === 'false' && 
             if ($(element).attr('card-type') === "compose") {
+                console.log("%cCompose card was found", "color: green") //
                 window.__activeCard = {
                     'element': element,
                     'type': $(element).attr('card-type'),
@@ -445,8 +446,6 @@ async function getActiveCard() {
                 resolve()
             }
         }
-
-        console.log("%cCompose card wasn't found", "color: green")
         reject("EMAIL CARD NOT FOUND")
     })
 }
@@ -624,17 +623,21 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
+            console.log(selectedTemp)
             let sections = __activeCard.element.querySelectorAll('tr p')
 
             if (selectedTemp.inputs.appointment) {
+                console.log("Email replaced")
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field')
             }
             if (selectedTemp.inputs.name) {
+                console.log("Name replaced")
                 $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name)
                 $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field')
             }
             if (selectedTemp.inputs.phone) {
+                console.log("Phone replaced")
                 $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone)
                 $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field')
             }
