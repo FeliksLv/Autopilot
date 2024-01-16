@@ -222,11 +222,11 @@ function bulkBifrost() {
             //Get agent data
             $(conf.caseLog_btn)[0].click()
             $(conf.agentInfo)[0].click()
-            await waitForEntity('profile-details', 'agent_data', 'sel')
+            await waitForEntity('profile-details', 'agent_data', 'sel') // 🎈
             var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
 
             console.log('bulkData 01')
-            console.log(bulkData)
+            console.log(bulkData.activeCase)
 
             //Defines the case category
             $(conf.logMessages)[0].querySelector('div > div').click()
@@ -441,6 +441,7 @@ async function getActiveCard() {
                     'type': $(element).attr('card-type'),
                     'selectedTemp': $("#templateEmail").val()
                 }
+                console.log(window.__activeCard)
                 resolve()
             }
         }
@@ -773,8 +774,8 @@ async function attachEmail() {
         try {
             await validateKey()
             await newEmail()
-            await bulkBifrost()
             await getActiveCard()
+            await bulkBifrost()
             await updateAdresses()
             await insertTemplate()
             await autoFill()
