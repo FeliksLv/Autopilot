@@ -90,7 +90,7 @@ function insertModal2() {
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -159,12 +159,12 @@ function handleSelect(event) {
         }
     }
 
-    if (event.target === selectEmail) { $(selectEmail).val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
+    if (event.target === selectEmail) { $('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
     if (reschInputs.some(input => event.target === $(input)[0])) { reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true) }
 
     function noReschedule() {
         $('#showTime').attr('disabled', false)
-        if ($(selectEmail).val() !== 'default') {
+        if ($('#templateEmail').find(':selected').attr('crCode') !== 'default') {
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
                 i === 0 ? $(input).val('') : $(input).val('default')
