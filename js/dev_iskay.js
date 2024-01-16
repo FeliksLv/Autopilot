@@ -90,7 +90,7 @@ function insertModal2() {
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -152,9 +152,9 @@ function handleSelect(event) {
         })
         //Handle Visibility Options
         for (option of selectEmail) {
-            if ($(selectType).val() === "leadGen") { option.value.includes("lg") ? $(option).show() : $(option).hide() }
-            if ($(selectType).val() === "tag") { option.value.includes("ts") ? $(option).show() : $(option).hide() }
-            if ($(selectType).val() === "external") { option.value.includes("ext") ? $(option).show() : $(option).hide() }
+            if ($(selectType).val() === "leadGen") { option.value === "oct" ? $(option).show() : $(option).hide() }
+            if ($(selectType).val() === "tag") { option.value === "t&s" ? $(option).show() : $(option).hide() }
+            if ($(selectType).val() === "external") { option.value === "ext" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
         }
     }
@@ -225,7 +225,7 @@ function bulkBifrost() {
             await waitForEntity('profile-details', 'agent_data', 'sel')
             var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
 
-            console.log('bulkData')
+            console.log('bulkData 01')
             console.log(bulkData)
 
             //Defines the case category
@@ -237,7 +237,7 @@ function bulkBifrost() {
             switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
                 case 'Submitted via Greentea Transfer': __activeCard.category = 'Greentea Transfer'; break;
                 case 'Submitted via Help Center Direct to Form':
-                    //FALL THROUGH
+                //FALL THROUGH
                 case 'Submitted via Transfer': __activeCard.category = 'DFA'; break;
                 default: __activeCard.category = 'Unidentified'
             }
@@ -292,7 +292,7 @@ function bulkBifrost() {
 
             //Case Data declaration
             if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
-                if ($('#templateEmail').val().match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
+                if ($('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
                     console.log('bulkData resch')
                     console.log(bulkData)
                     if (__activeCard.category === 'DFA') {
@@ -535,7 +535,7 @@ function removeDefaultEmails() {
 function insertTemplate() {
     return new Promise(async (resolve, reject) => {
         if ($(conf.writeCards).length === 1) {
-            if ($('#templateEmail').val().includes('ext')) {
+            if ($('#templateEmail').val() === "ext") {
                 var signature = $(__activeCard.element.querySelector(conf.signature)).html()
                 //External template
                 var temp_data = await getExternalTemp()
@@ -553,7 +553,10 @@ function insertTemplate() {
                 //Non external template
                 $('[aria-label="Insert canned response"]')[0].click()
                 await waitForEntity(conf.cannedInput, 'Canned_response input', 'sel')
-                $(conf.cannedInput).val($('#templateEmail').val())
+
+                console.log($('#templateEmail').find(':selected').attr('crCode'))
+
+                $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'))
                 $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
                 await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')
                 $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
@@ -584,7 +587,7 @@ function getExternalTemp() {
         ]
 
         for (const item of ext_files) {
-            if (item.temp === $('#templateEmail').val()) {
+            if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
                 fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
@@ -599,7 +602,7 @@ function getExternalTemp() {
 
 function autoFill() {
     return new Promise(async (resolve) => {
-        if ($('#templateEmail').val().includes('ext')) {
+        if ($('#templateEmail').val() === 'ext') {
             //Logic to autofill external temps
             let emailBody = $(__activeCard.element.querySelector(conf.emailContent))
             let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle))
