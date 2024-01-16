@@ -440,7 +440,7 @@ async function getActiveCard() {
                 window.__activeCard = {
                     'element': element,
                     'type': $(element).attr('card-type'),
-                    'selectedTemp': $("#templateEmail").val()
+                    'selectedTemp': $('#templateEmail').find(':selected').attr('crCode')
                 }
                 console.log(window.__activeCard)
                 resolve()
@@ -540,7 +540,7 @@ function insertTemplate() {
                 //External template
                 var temp_data = await getExternalTemp()
                 $(__activeCard.element.querySelector(conf.emailTitle)).val(temp_data.title)
-                if ($("#templateEmail").val().includes('mms')) {
+                if ($('#templateEmail').find(':selected').attr('crCode').includes('mms')) {
                     $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>${signature}`)
                     resolve()
                 }
