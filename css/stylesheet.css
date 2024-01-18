@@ -41,6 +41,7 @@
       justify-content: center;
       align-items: center;
       animation: pulse 2s infinite;
+      cursor: pointer
     }
 
     @keyframes pulse {
@@ -261,6 +262,7 @@
       width: 40%;
       height: 25px;
       margin-right: 5px;
+      cursor: pointer;
     }
 
     .modal-container .alert {
