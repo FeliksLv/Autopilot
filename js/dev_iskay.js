@@ -2,6 +2,7 @@ const conf = {
     logMessages: '.active-case-log-container case-message-view',
     agentInfo: 'profile material-button',
     logMessageContent: '.message-body.message-body1',
+    logDfaContent: 'div.expanded',
     emailContent: '#email-body-content-top-content',
     emailTitle: '[aria-label="Subject"]',
     writeCard_btn: '[aria-label="Create a write card"]',
@@ -225,7 +226,7 @@ function bulkBifrost() {
             await waitForEntity('profile-details', 'agent_data', 'sel') // 🎈
             var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
 
-            console.log('bulkData 01')
+            console.log('bulkData I')
             console.log(bulkData.activeCase)
 
             //Defines the case category
@@ -241,7 +242,6 @@ function bulkBifrost() {
                 case 'Submitted via Transfer': __activeCard.category = 'DFA'; break;
                 default: __activeCard.category = 'Unidentified'
             }
-
 
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
@@ -280,13 +280,15 @@ function bulkBifrost() {
 
                 //Extra informations to DFA cases
                 else if (__activeCard.category === 'DFA') {
-                    $(conf.logMessages)[0].querySelector('div > div').click()
-                    await waitForEntity(conf.logMessageContent, 'extra_information', 'from', $(conf.logMessages)[0])
                     console.log('DFA')
+                    $(conf.logMessages)[0].querySelector('div > div').click()
+                    await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0])
 
                     for (const data of $(conf.logMessages)[0].querySelectorAll('.contactUsFormRows')) {
                         $(data.querySelector('.form-label')).text() === 'Website URL' ? bulkData.website = $(data.querySelector('a')).text() : null
                     }
+
+                    console.log(bulkData)
                 }
             }
 
@@ -726,6 +728,15 @@ function showDefault() {
     })
 }
 
+function changeSpinner() {
+    return new Promise(async (resolve) => {
+        let newIcon = '<svg height="40" viewBox="0 0 24 24" width="40" xmlns="http://www.w3.org/2000/svg"><rect height="2" width="2" x="6" y="3"></rect><rect height="2" width="3" x="8" y="19"></rect><rect height="2" width="2" x="16" y="3"></rect><rect height="2" width="3" x="13" y="19"></rect><path d="M20,11V9H18V7H16V5H14V7H10V5H8V7H6V9H4v2H2v8H4V15H6v4H8V16h8v3h2V15h2v4h2V11ZM10,12H8V9h2Zm6,0H14V9h2Z"></path></svg>'
+        $('#noteIcon').remove()
+        $("#circle").html(newIcon)
+        resolve()
+    })
+}
+
 function init() {
     return new Promise(async (resolve) => {
         try {
@@ -743,6 +754,7 @@ function init() {
             await new Promise(resolve => setTimeout(resolve, 2000));
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
+            await changeSpinner()
             resolve()
         }
         catch (error) {
