@@ -742,7 +742,7 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
