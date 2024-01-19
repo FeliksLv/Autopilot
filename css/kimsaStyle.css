@@ -31,11 +31,13 @@
     z-index: 9999;
 }
 
-.modal-container *{
+.modal-title,
+.modal-select label,
+.modal-select select,
+.modal-select input,
+.modal-select .msg,
+#showTime {
     font-family: "VT323", monospace;
-}
-.modal-title {
-    font-family: "VT323", monospace !important;
 }
 
 /* Estilo para o círculo roxo animado */
