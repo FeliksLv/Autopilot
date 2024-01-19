@@ -41,7 +41,8 @@
       justify-content: center;
       align-items: center;
       animation: pulse 2s infinite;
-      cursor: pointer
+      cursor: pointer;
+      fill: #ffffff;
     }
 
     @keyframes pulse {
