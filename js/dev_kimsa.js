@@ -96,6 +96,8 @@ function insertModal2() {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
             }).then(temp => {
+                //Aqui modifica el height e insere o novo html
+                $('#myModal').css("height", "310px")
                 $('.modal-select').html(temp)
                 resolve()
             })
@@ -560,6 +562,7 @@ function insertTemplate() {
                 console.log($('#templateEmail').find(':selected').attr('crCode'))
 
                 $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'))
+                await new Promise(resolve => setTimeout(resolve, 500));
                 $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
                 await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')
                 $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
@@ -742,7 +745,7 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/css/kimsaStyle.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
