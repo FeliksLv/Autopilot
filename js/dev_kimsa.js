@@ -243,6 +243,10 @@ function bulkBifrost() {
                 default: __activeCard.category = 'Unidentified'
             }
 
+            //If the case will be LT the tool won't work
+            __activeCard.category === "Unidentified" ? reject("UNKNOWN CASE TYPE") : null
+
+
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
                     //Name + Timezone
@@ -256,7 +260,7 @@ function bulkBifrost() {
 
                     //Get Name only returns DEFAULT on tabs other than a case tab
                     bulkData.timezone = richContent.match(region)[0];
-                    bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'Default')
+                    bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT_NAME')
                 }
 
                 //Extra informations to Non DFA cases
@@ -280,14 +284,11 @@ function bulkBifrost() {
 
                 //Extra informations to DFA cases
                 else if (__activeCard.category === 'DFA') {
-                    console.log('DFA')
+                    console.log('DFA Case')
+                    const reg = /^[^@]*\.[^@]*$/;
                     $(conf.logMessages)[0].querySelector('div > div').click()
-                    await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0])
-
-                    for (const data of $(conf.logMessages)[0].querySelectorAll('.contactUsFormRows')) {
-                        $(data.querySelector('.form-label')).text() === 'Website URL' ? bulkData.website = $(data.querySelector('a')).text() : null
-                    }
-
+                    await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0]);
+                    bulkData.website = [...$(conf.logMessages)[0].querySelectorAll('a')].reduce((acc, url) => { return (reg.test(url.innerHTML) ? url.innerHTML : acc) }, "DEFAULT_URL")
                     console.log(bulkData)
                 }
             }
@@ -355,7 +356,7 @@ function bulkBifrost() {
             }
             else { reject("CASE NOT FOUND") }
         }
-        catch (error) { reject("BIFROST BULK ERROR") }
+        catch (error) { reject(error) }
     })
 }
 
@@ -904,7 +905,10 @@ async function errorClosure(msg) {
                                 : err === "WRONG PAGE" ? errorClosure("Focus a case page")
                                     : err === "EMAIL CARD NOT FOUND" ? errorClosure("None card was detected")
                                         : err === "CASE NOT FOUND" ? errorClosure("Case not found in your calendar")
-                                            : err === "CDN ERROR" ? errorClosure("Unexpected server error") : errorClosure(err)
+                                            : err === "UNKNOWN CASE TYPE" ? errorClosure("Unknown case type")
+                                                : err === "CDN ERROR" ? errorClosure("Unexpected server error") : errorClosure(err)
+
+
                 }
             })
         }
