@@ -147,6 +147,8 @@ function handleSelect(event) {
     if (event.target === selectType) {
         //Default select behavior
         $('#showTime').attr('disabled', true)
+        $("#showTime").unbind('mouseenter mouseleave');
+        $("#showTime").css("cursor", "not-allowed")
         $(selectEmail).attr('disabled', false)
         $(selectEmail).val('default');
         reschInputs.forEach((input, i) => {
@@ -163,10 +165,25 @@ function handleSelect(event) {
     }
 
     if (event.target === selectEmail) { $('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
-    if (reschInputs.some(input => event.target === $(input)[0])) { reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true) }
+    if (reschInputs.some(input => event.target === $(input)[0])) {
+        if (reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default')) {
+            $('#showTime').attr('disabled', false)
+            $("#showTime").hover(function (e) {
+                $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
+            })
+        }
+        else {
+            $('#showTime').attr('disabled', true)
+            $("#showTime").unbind('mouseenter mouseleave');
+            $("#showTime").css("cursor", "not-allowed")
+        }
+    }
 
     function noReschedule() {
         $('#showTime').attr('disabled', false)
+        $("#showTime").hover(function (e) {
+            $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
+        })
         if ($('#templateEmail').find(':selected').attr('crCode') !== 'default') {
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
@@ -175,6 +192,8 @@ function handleSelect(event) {
         }
         else {
             $('#showTime').attr('disabled', true)
+            $("#showTime").unbind('mouseenter mouseleave');
+            $("#showTime").css("cursor", "not-allowed")
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
                 i === 0 ? $(input).val('') : $(input).val('default')
@@ -184,6 +203,8 @@ function handleSelect(event) {
 
     function handleResch() {
         $('#showTime').attr('disabled', true)
+        $("#showTime").unbind('mouseenter mouseleave');
+        $("#showTime").css("cursor", "not-allowed")
         reschInputs.forEach(input => $(input).attr('disabled', false))
     }
 }
@@ -908,11 +929,9 @@ async function errorClosure(msg) {
                             : err === "ERROR UPDATING ADRESSES" ? errorClosure('Error attaching emails')
                                 : err === "WRONG PAGE" ? errorClosure("Focus a case page")
                                     : err === "EMAIL CARD NOT FOUND" ? errorClosure("None card was detected")
-                                        : err === "CASE NOT FOUND" ? errorClosure("Case not found in your calendar")
+                                        : err === "CASE NOT FOUND" ? errorClosure("Case not found on Calendar")
                                             : err === "UNKNOWN CASE TYPE" ? errorClosure("Unknown case type")
                                                 : err === "CDN ERROR" ? errorClosure("Unexpected server error") : errorClosure(err)
-
-
                 }
             })
         }
