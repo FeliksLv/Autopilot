@@ -147,6 +147,8 @@ function handleSelect(event) {
     if (event.target === selectType) {
         //Default select behavior
         $('#showTime').attr('disabled', true)
+        $("#showTime").unbind('mouseenter mouseleave');
+        $("#showTime").css("cursor", "not-allowed")
         $(selectEmail).attr('disabled', false)
         $(selectEmail).val('default');
         reschInputs.forEach((input, i) => {
@@ -163,10 +165,25 @@ function handleSelect(event) {
     }
 
     if (event.target === selectEmail) { $('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
-    if (reschInputs.some(input => event.target === $(input)[0])) { reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default') ? $('#showTime').attr('disabled', false) : $('#showTime').attr('disabled', true) }
+    if (reschInputs.some(input => event.target === $(input)[0])) {
+        if (reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default')) {
+            $('#showTime').attr('disabled', false)
+            $("#showTime").hover(function (e) {
+                $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
+            })
+        }
+        else {
+            $('#showTime').attr('disabled', true)
+            $("#showTime").unbind('mouseenter mouseleave');
+            $("#showTime").css("cursor", "not-allowed")
+        }
+    }
 
     function noReschedule() {
         $('#showTime').attr('disabled', false)
+        $("#showTime").hover(function (e) {
+            $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
+        })
         if ($('#templateEmail').find(':selected').attr('crCode') !== 'default') {
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
@@ -175,6 +192,8 @@ function handleSelect(event) {
         }
         else {
             $('#showTime').attr('disabled', true)
+            $("#showTime").unbind('mouseenter mouseleave');
+            $("#showTime").css("cursor", "not-allowed")
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
                 i === 0 ? $(input).val('') : $(input).val('default')
@@ -184,6 +203,8 @@ function handleSelect(event) {
 
     function handleResch() {
         $('#showTime').attr('disabled', true)
+        $("#showTime").unbind('mouseenter mouseleave');
+        $("#showTime").css("cursor", "not-allowed")
         reschInputs.forEach(input => $(input).attr('disabled', false))
     }
 }
@@ -272,7 +293,6 @@ function bulkBifrost() {
 
                 //Extra informations to DFA cases
                 else if (__activeCard.category === 'DFA') {
-                    console.log('DFA Case')
                     const reg = /^[^@]*\.[^@]*$/;
                     $(conf.logMessages)[0].querySelector('div > div').click()
                     await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0]);
@@ -282,8 +302,9 @@ function bulkBifrost() {
 
             //Case Data declaration
             if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
+                console.log('BulkData')
+                console.log(bulkData)
                 if ($('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
-                    console.log(bulkData)
                     if (__activeCard.category === 'DFA') {
                         let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
                         window.__caseData = __Bifrost.data.reduce((acc, data) => {
@@ -293,7 +314,7 @@ function bulkBifrost() {
                             } : acc)
                         }, {})
 
-                        console.log('Resch Greentea')
+                        console.log('Resch DFA')
                         console.log(__caseData)
                         resolve()
                     }
@@ -386,6 +407,8 @@ async function newEmail() {
                 $(conf.writeCard_btn)[0].dispatchEvent(new Event('focus'))
                 await waitForEntity(conf.newEmail_btn, 'Lateral_bar', 'sel')
                 $(conf.newEmail_btn)[0].click()
+
+                console.log("%cCreated email", "color: green")
                 await newEmailAlert(cards)
                 resolve()
             }
@@ -609,7 +632,6 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-            console.log(selectedTemp)
             let sections = __activeCard.element.querySelectorAll('tr p')
 
             if (selectedTemp.inputs.appointment) {
@@ -722,7 +744,8 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
+            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -859,8 +882,10 @@ async function errorClosure(msg) {
 
             $('#showTime').on("click", async () => {
                 //Remove Default + Transition
-                $('#showTime').html('Loading<i class="fa fa-cog fa-spin"></i>')
+                $('#showTime').html('LOADING<i class="fa fa-cog fa-spin"></i>')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+                $("#showTime").unbind('mouseenter mouseleave');
+                $("#showTime").css("cursor", "not-allowed").css("background-color", "#815c84")
                 $('.alert').removeClass("show")
                 $('.alert').addClass("hide")
                 showDefault('Working...')
