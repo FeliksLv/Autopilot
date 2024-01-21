@@ -904,8 +904,10 @@ async function errorClosure(msg) {
 
             $('#showTime').on("click", async () => {
                 //Remove Default + Transition
-                $('#showTime').html('Loading<i class="fa fa-cog fa-spin"></i>')
+                $('#showTime').html('LOADING<i class="fa fa-cog fa-spin"></i>')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
+                $("#showTime").unbind('mouseenter mouseleave');
+                $("#showTime").css("cursor", "not-allowed").css("background-color", "#815c84")
                 $('.alert').removeClass("show")
                 $('.alert').addClass("hide")
                 showDefault('Working...')
