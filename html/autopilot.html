@@ -1,7 +1,8 @@
 <label for="temp_type" class="title">Workflow: </label>
 <select id="temp_type">
     <option value="default">-</option>
-    <option value="tag">Tag & Shopping</option>
+    <option value="tag">Tag</option>
+    <option value="shopping">Shopping</option>
     <option value="leadGen">LeadGen</option>
     <option value="external">Utilities</option>
 </select>
@@ -9,52 +10,74 @@
 <label for="templateEmail" class="title">Email: </label>
 <select id="templateEmail" disabled>
     <option value="default" crCode="default">-</option>
-    
-    <option value="t&s" crCode="ts as new">New - Confirmation Email</option>
-    <option value="t&s" crCode="ts so verif">SO - Implementation Only</option>
-    <option value="t&s" crCode="lg so oth">SO - Education Only</option>
-    <option value="t&s" crCode="lg so oth">SO - Troubleshooting Only</option>
-    <option value="t&s" crCode="ts so verif nrc">SO - Verified No Recent Conversion</option>
-    <option value="t&s" crCode="ts so unv">SO - Unverified</option>
-    <option value="t&s" crCode="ts as resched1">AS - Reschedule 1</option>
-    <option value="t&s" crCode="ts as reschedok">AS - Acceptable Reschedule</option>
-    <option value="t&s" crCode="ts ni ai">NI - Awaiting Inputs</option>
-    <option value="t&s" crCode="ts ni ic">NI - In Consult</option>
-    <option value="t&s" crCode="ts ni av">NI - Awaiting Validation</option>
-    <option value="t&s" crCode="ts ni ac">NI - Attempted Contact</option>
-    <option value="t&s" crCode="ts in inf">IN - Infeasible</option>
-    <option value="t&s" crCode="ts in nrch">IN - Not Reachable</option>
-    <option value="t&s" crCode="ts in ni">IN - Not Interested</option>
-    <option value="t&s" crCode="ts in nrdy">IN - Not Ready</option>
-    <option value="t&s" crCode="ts in oost">IN - Out of Scope - Rerouted to Internal Team</option>
-    <option value="t&s" crCode="ts in oosu">IN - Out of Scope - Unable to Transfer</option>
-    <option value="t&s" crCode="ts in oos seller">IN - Out of Scope - Email to Seller</option>
-    <option value="t&s" crCode="ts in oost">IN - Troubleshooting [Transferred]</option>
 
-    <option value="oct" crCode="lg as new">New - Confirmation Email</option>
-    <option value="oct" crCode="ts so verif">SO - Implementation Only</option>
-    <option value="oct" crCode="lg so oth">SO - Education Only</option>
-    <option value="oct" crCode="lg so oth">SO - Troubleshooting Only</option>
-    <option value="oct" crCode="lg so verif seller">SO - Verified Email to Seller</option>
-    <option value="oct" crCode="lg so oth">SO - Others</option>
-    <option value="oct" crCode="lg as resched1">AS - Reschedule 1</option>
-    <option value="oct" crCode="lg as reschedok">AS - Acceptable Reschedule</option>
-    <option value="oct" crCode="lg ni ai">NI - Awaiting Inputs</option>
-    <option value="oct" crCode="lg ni ic">NI - In Consult</option>
-    <option value="oct" crCode="lg ni av">NI - Awaiting Validation</option>
-    <option value="oct" crCode="lg ni ac">NI - Attempted Contact</option>
-    <option value="oct" crCode="lg ni lf">NI - Modifying leadform to accept GCLID</option>
-    <option value="oct" crCode="lg ni crm">NI - Updating CRM to accept GCLID</option>
-    <option value="oct" crCode="lg ni imp">NI - Preparing data for import</option>
-    <option value="oct" crCode="lg in inf">IN - Infeasible</option>
-    <option value="oct" crCode="lg in nrch">IN - Not Reachable</option>
-    <option value="oct" crCode="lg in ni">IN - Not Interested</option>
-    <option value="oct" crCode="lg in nrdy">IN - Not Ready</option>
-    <option value="oct" crCode="lg in oost">IN - Out of Scope - Rerouted to Internal Team</option>
-    <option value="oct" crCode="lg in oosu">IN - Out of Scope - Unable to Transfer</option>
-    <option value="oct" crCode="lg in oos seller">IN - Out of Scope - Email to Seller</option>
-    <option value="oct" crCode="lg in oth">IN - Other</option>
-    <option value="oct" crCode="ts in oost">IN - Troubleshooting [Transferred]</option>
+    <option value="t&s" crCode="ts as new">New - Confirmation Email</option><!---->
+    <option value="t&s" crCode="ts so verif">SO - Implementation Only</option><!---->
+    <option value="t&s" crCode="lg so oth">SO - Education Only</option><!---->
+    <option value="t&s" crCode="lg so oth">SO - Troubleshooting Only</option><!---->
+    <option value="t&s" crCode="ts so verif nrc">SO - Verified No Recent Conversion</option><!---->
+    <option value="t&s" crCode="ts so unv">SO - Unverified</option><!---->
+    <option value="t&s" crCode="ts as resched1">AS - Reschedule 1</option><!---->
+    <option value="t&s" crCode="ts as reschedok">AS - Acceptable Reschedule</option><!---->
+    <option value="t&s" crCode="ts ni ai">NI - Awaiting Inputs</option><!---->
+    <option value="t&s" crCode="ts ni ic">NI - In Consult</option><!---->
+    <option value="t&s" crCode="ts ni av">NI - Awaiting Validation</option><!---->
+    <option value="t&s" crCode="ts ni ac">NI - Attempted Contact</option><!---->
+    <option value="t&s" crCode="ts in inf">IN - Infeasible</option><!---->
+    <option value="t&s" crCode="ts in nrch">IN - Not Reachable</option><!---->
+    <option value="t&s" crCode="ts in ni">IN - Not Interested</option><!---->
+    <option value="t&s" crCode="ts in nrdy">IN - Not Ready</option><!---->
+    <option value="t&s" crCode="ts in oost">IN - Out of Scope - Rerouted to Internal Team</option><!---->
+    <option value="t&s" crCode="ts in oosu">IN - Out of Scope - Unable to Transfer</option><!---->
+    <option value="t&s" crCode="ts in oos seller">IN - Out of Scope - Email to Seller</option><!---->
+    <option value="t&s" crCode="ts in oost">IN - Troubleshooting [Transferred]</option><!---->
+
+    <option value="shopping" crCode="ts as new">New - Confirmation Email</option><!---->
+    <option value="shopping" crCode="ts so verif">SO - Verified</option><!---->
+    <option value="shopping" crCode="ts so verif nrc">SO - Verified No Recent Conversion</option><!---->
+    <option value="shopping" crCode="ts so unv">SO - Unverified</option><!---->
+    <option value="shopping" crCode="ts so vnn">SO - Verification Not Needed</option><!---->
+    <option value="shopping" crCode="ts as resched1">AS - Reschedule 1</option><!---->
+    <option value="shopping" crCode="ts as reschedok">AS - Acceptable Reschedule</option><!---->
+    <option value="shopping" crCode="ts ni ai">NI - Awaiting Inputs</option><!---->
+    <option value="shopping" crCode="ts ni ic">NI - In Consult</option><!---->
+    <option value="shopping" crCode="ts ni av">NI - Awaiting Validation</option><!---->
+    <option value="shopping" crCode="ts ni ac">NI - Attempted Contact</option><!---->
+    <option value="shopping" crCode="ts ni oth">NI - Other</option><!---->
+    <option value="shopping" crCode="ts in inf">IN - Infeasible</option><!---->
+    <option value="shopping" crCode="ts in nrch">IN - Not Reachable</option><!---->
+    <option value="shopping" crCode="ts in ni">IN - Not Interested</option><!---->
+    <option value="shopping" crCode="ts in nrdy">IN - Not Ready</option><!---->
+    <option value="shopping" crCode="ts in oost">IN - Out of Scope - Rerouted to Internal Team</option><!---->
+    <option value="shopping" crCode="ts in oosu">IN - Out of Scope - Unable to Transfer</option><!---->
+    <option value="shopping" crCode="ts in oos seller">IN - Out of Scope - Email to Seller</option><!---->
+    <option value="shopping" crCode="ts in oth">IN - Other</option><!---->
+
+    <option value="oct" crCode="lg as new">New - Confirmation Email</option><!---->
+    <option value="oct" crCode="lg so verif">SO - Verified</option><!---->
+    <option value="oct" crCode="lg so oth">SO - Other</option><!---->
+    <option value="oct" crCode="lg so verif seller">SO - Verified Email to Seller</option><!---->
+    <option value="oct" crCode="lg as wip seller">AS - Pre Implementation Checklist to Seller</option><!---->
+    <option value="oct" crCode="lg as wip offs">AS - Offline Support (lg as wip offs)</option><!---->
+    <option value="oct" crCode="lg as wip offtfr">AS - Offline Support (lg as wip offtfr)</option><!---->
+    <option value="oct" crCode="lg as resched1">AS - Reschedule 1</option><!---->
+    <option value="oct" crCode="lg as reschedok">AS - Acceptable Reschedule</option><!---->
+    <option value="oct" crCode="lg ni ai">NI - Awaiting Inputs</option><!---->
+    <option value="oct" crCode="lg ni ic">NI - In Consult</option><!---->
+    <option value="oct" crCode="lg ni av">NI - Awaiting Validation</option><!---->
+    <option value="oct" crCode="lg ni ac">NI - Attempted Contact</option><!---->
+    <option value="oct" crCode="lg ni lf">NI - Modifying leadform to accept GCLID</option><!---->
+    <option value="oct" crCode="lg ni crm">NI - Updating CRM to accept GCLID</option><!---->
+    <option value="oct" crCode="lg ni imp">NI - Preparing data for import</option><!---->
+    <option value="oct" crCode="lg ni oth">NI - Other</option><!---->
+    <option value="oct" crCode="lg in inf">IN - Infeasible</option><!---->
+    <option value="oct" crCode="lg in nrch">IN - Not Reachable</option><!---->
+    <option value="oct" crCode="lg in ni">IN - Not Interested</option><!---->
+    <option value="oct" crCode="lg in nrdy">IN - Not Ready</option><!---->
+    <option value="oct" crCode="lg in oost">IN - Out of Scope - Rerouted to Internal Team</option><!---->
+    <option value="oct" crCode="lg in oosu">IN - Out of Scope - Unable to Transfer</option><!---->
+    <option value="oct" crCode="lg in oos seller">IN - Out of Scope - Email to Seller</option><!---->
+    <option value="oct" crCode="lg in oth">IN - Other</option><!---->
 
     <option value="ext" crCode="ext attempt_es">Contact Attempt (ES)</option>
     <option value="ext" crCode="ext attempt_pt">Contact Attempt (PT)</option>
