@@ -273,10 +273,6 @@
 }
 
 #showTime {
-    border-bottom: 5px inset rgba(0,0,0,.5);
-    border-left: 5px inset rgba(0,0,0,.5);
-    border-right: 5px inset rgba(255,255,255,.5);
-    border-top: 5px inset rgba(255,255,255,.5);
     width: 40%;
     height: 75%;
     margin-right: 5px;
