@@ -14,7 +14,7 @@ const conf = {
     dropdownEmails: 'material-select-dropdown-item[id*="email-address-id--"]',
     signature: '#email-body-content-top-content > .replaced:last-child',
     cannedInput: 'canned-response-dialog input',
-    cannedDropdown: 'material-select-dropdown-item[aria-selected="false"] span'
+    cannedDropdown: '.pane.selections.visible material-select-dropdown-item[aria-selected="false"] span'
 }
 
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
@@ -566,11 +566,9 @@ function insertTemplate() {
                 console.log($('#templateEmail').find(':selected').attr('crCode'))
 
                 $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'))
-                await new Promise(resolve => setTimeout(resolve, 500));
+                $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
                 $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
                 await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')//🎈🎈
-                $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
-                await new Promise(resolve => setTimeout(resolve, 700));
                 $(conf.cannedDropdown)[0].click()
                 await insertedTempAlert()
                 console.log("%cCanned response was inserted", "color: green")
@@ -634,7 +632,7 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-            let duplicatedMessages = ['Soluciones Técnicas de Google', 'Soluções Técnicas do Google', 'Soluções técnicas do Google', 'Soluções técnicas da Google']
+            let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google']
 
             if (selectedTemp.inputs.appointment) {
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
@@ -653,7 +651,7 @@ function autoFill() {
             }
             //Duplicated signature remotion
             for (element of __activeCard.element.querySelectorAll('tr span')) { element.innerText.includes('{%neo.vendor_partner%}') ? element.parentElement.remove() : null }
-            for (element of __activeCard.element.querySelectorAll('tr > td')) { duplicatedMessages.some(e => element.innerText === e) ? element.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null }
             resolve()
         }
         __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(new Event('input', { bubbles: true }))
@@ -719,14 +717,14 @@ function removeError() {
         }, 3000);
     })
 }
-function showDefault() {
+function showDefault(msg = 'Waiting for instructions') {
     return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
             $('.alert').removeClass(["hide", "error", "success"]);
             $('.alert > span:first-child').removeClass(["fa-exclamation-circle", "fa-check-circle"]);
             $('.alert > span:first-child').addClass("fa-magic");
             $('.alert').addClass(["show", "default"]);
-            $(".msg").text('Waiting for instructions')
+            $(".msg").text(msg)
             $('.close-btn').hide()
             $('.alert').off()
             resolve()
@@ -904,7 +902,7 @@ async function errorClosure(msg) {
                     $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
-                    $('#showTime').html('Insert<i class="fa fa-cog"></i>')
+                    $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
                 }
                 catch (err) {
                     err === "BIFROST BULK ERROR" ? errorClosure("Error fetching your data")
