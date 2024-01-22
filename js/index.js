@@ -91,7 +91,7 @@ function insertModal2() {
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -597,7 +597,7 @@ function getExternalTemp() {
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/templates/${item.file}`)
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
@@ -716,14 +716,14 @@ function removeError() {
         }, 3000);
     })
 }
-function showDefault() {
+function showDefault(msg = 'Waiting for instructions') {
     return new Promise(async (resolve) => {
         $('.alert').on("animationend", (e) => {
             $('.alert').removeClass(["hide", "error", "success"]);
             $('.alert > span:first-child').removeClass(["fa-exclamation-circle", "fa-check-circle"]);
             $('.alert > span:first-child').addClass("fa-magic");
             $('.alert').addClass(["show", "default"]);
-            $(".msg").text('Waiting for instructions')
+            $(".msg").text(msg)
             $('.close-btn').hide()
             $('.alert').off()
             resolve()
@@ -744,8 +744,8 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/css/stylesheet.css")
-            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/css/stylesheet.css")
+            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
