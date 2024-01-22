@@ -771,7 +771,7 @@ function init() {
 function loadModal() {
     return new Promise(async (resolve) => {
         try {
-            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/firstModal.html')
+            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/firstModal.html')
                 .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
             console.log("%cModal 1 inserted", "color: green")
             await validateKey()
