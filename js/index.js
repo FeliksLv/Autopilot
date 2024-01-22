@@ -901,7 +901,7 @@ async function errorClosure(msg) {
                     $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
-                    $('#showTime').html('Insert<i class="fa fa-cog"></i>')
+                    $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
                 }
                 catch (err) {
                     err === "BIFROST BULK ERROR" ? errorClosure("Error fetching your data")
