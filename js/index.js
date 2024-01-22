@@ -14,7 +14,7 @@ const conf = {
     dropdownEmails: 'material-select-dropdown-item[id*="email-address-id--"]',
     signature: '#email-body-content-top-content > .replaced:last-child',
     cannedInput: 'canned-response-dialog input',
-    cannedDropdown: 'material-select-dropdown-item span'
+    cannedDropdown: '.pane.selections.visible material-select-dropdown-item[aria-selected="false"] span'
 }
 
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
@@ -91,7 +91,7 @@ function insertModal2() {
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -159,6 +159,7 @@ function handleSelect(event) {
         for (option of selectEmail) {
             if ($(selectType).val() === "leadGen") { option.value === "oct" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "tag") { option.value === "t&s" ? $(option).show() : $(option).hide() }
+            if ($(selectType).val() === "shopping") { option.value === "shopping" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "external") { option.value === "ext" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
         }
@@ -565,10 +566,9 @@ function insertTemplate() {
                 console.log($('#templateEmail').find(':selected').attr('crCode'))
 
                 $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'))
-                await new Promise(resolve => setTimeout(resolve, 500));
-                $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
-                await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')
                 $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
+                $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
+                await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')//🎈🎈
                 $(conf.cannedDropdown)[0].click()
                 await insertedTempAlert()
                 console.log("%cCanned response was inserted", "color: green")
@@ -597,7 +597,7 @@ function getExternalTemp() {
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
@@ -632,7 +632,7 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-            let sections = __activeCard.element.querySelectorAll('tr p')
+            let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google', 'solucoes tecnicas da google']
 
             if (selectedTemp.inputs.appointment) {
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
@@ -650,7 +650,8 @@ function autoFill() {
                 console.log('No fields');
             }
             //Duplicated signature remotion
-            for (element of sections) { element.innerText.includes('{%neo.vendor_partner%}') ? element.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr span')) { element.innerText.includes('{%neo.vendor_partner%}') ? element.parentElement.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null }
             resolve()
         }
         __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(new Event('input', { bubbles: true }))
@@ -744,8 +745,8 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/css/stylesheet.css")
-            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot@latest/css/kimsaStyle.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/css/stylesheet.css")
+            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -771,7 +772,7 @@ function init() {
 function loadModal() {
     return new Promise(async (resolve) => {
         try {
-            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/firstModal.html')
+            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/firstModal.html')
                 .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
             console.log("%cModal 1 inserted", "color: green")
             await validateKey()
