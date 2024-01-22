@@ -14,7 +14,7 @@ const conf = {
     dropdownEmails: 'material-select-dropdown-item[id*="email-address-id--"]',
     signature: '#email-body-content-top-content > .replaced:last-child',
     cannedInput: 'canned-response-dialog input',
-    cannedDropdown: 'material-select-dropdown-item span'
+    cannedDropdown: 'material-select-dropdown-item[aria-selected="false"] span'
 }
 
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
@@ -91,7 +91,7 @@ function insertModal2() {
         $('.modal-body')[0].appendChild(selectDiv)
 
         //Criacao da div que contem os select
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -159,6 +159,7 @@ function handleSelect(event) {
         for (option of selectEmail) {
             if ($(selectType).val() === "leadGen") { option.value === "oct" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "tag") { option.value === "t&s" ? $(option).show() : $(option).hide() }
+            if ($(selectType).val() === "shopping") { option.value === "shopping" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "external") { option.value === "ext" ? $(option).show() : $(option).hide() }
             if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
         }
@@ -248,10 +249,6 @@ function bulkBifrost() {
             $(conf.agentInfo)[0].click()
             await waitForEntity('profile-details', 'agent_data', 'sel') // 🎈
             var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
-
-            console.log('bulkData I')
-            console.log(bulkData.activeCase)
-
             //Defines the case category
             $(conf.logMessages)[0].querySelector('div > div').click()
 
@@ -277,10 +274,6 @@ function bulkBifrost() {
                     await waitForEntity(conf.logMessageContent, 'extra_information', 'from', message)
                     var region = /(?<=\[)(.*?)(?=\])/
                     var richContent = $(message.querySelector(conf.logMessageContent)).text()
-
-                    console.log('bulkData base')
-                    console.log(bulkData)
-
                     //Get Name only returns DEFAULT on tabs other than a case tab
                     bulkData.timezone = richContent.match(region)[0];
                     bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT_NAME')
@@ -293,34 +286,26 @@ function bulkBifrost() {
                     let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim()
                     bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() }
 
-                    console.log('bulkData seller')
-                    console.log(bulkData)
-
                     for (const data of $('.message-body.message-body1 tbody > tr')) {
                         $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
                             : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null
                     }
-
-                    console.log('bulkData additionals')
-                    console.log(bulkData)
                 }
 
                 //Extra informations to DFA cases
                 else if (__activeCard.category === 'DFA') {
-                    console.log('DFA Case')
                     const reg = /^[^@]*\.[^@]*$/;
                     $(conf.logMessages)[0].querySelector('div > div').click()
                     await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0]);
                     bulkData.website = [...$(conf.logMessages)[0].querySelectorAll('a')].reduce((acc, url) => { return (reg.test(url.innerHTML) ? url.innerHTML : acc) }, "DEFAULT_URL")
-                    console.log(bulkData)
                 }
             }
 
             //Case Data declaration
             if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
+                console.log('BulkData')
+                console.log(bulkData)
                 if ($('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
-                    console.log('bulkData resch')
-                    console.log(bulkData)
                     if (__activeCard.category === 'DFA') {
                         let reschAppointment = `${$('#resch_date').val()} ${$('#resch_time').val()} ${$('#resch_period').val()}`
                         window.__caseData = __Bifrost.data.reduce((acc, data) => {
@@ -330,7 +315,7 @@ function bulkBifrost() {
                             } : acc)
                         }, {})
 
-                        console.log('Resch Greentea')
+                        console.log('Resch DFA')
                         console.log(__caseData)
                         resolve()
                     }
@@ -357,8 +342,7 @@ function bulkBifrost() {
                             } : acc)
                         }, {})
 
-                        console.log('bulkData DFA')
-                        console.log(bulkData)
+                        console.log('Regular DFA')
                         console.log(__caseData)
                         resolve()
                     }
@@ -370,8 +354,7 @@ function bulkBifrost() {
                             } : acc)
                         }, {})
 
-                        console.log('bulkData Greentea')
-                        console.log(bulkData)
+                        console.log('Regular Greentea')
                         console.log(__caseData)
                         resolve()
                     }
@@ -585,8 +568,9 @@ function insertTemplate() {
                 $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'))
                 await new Promise(resolve => setTimeout(resolve, 500));
                 $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
-                await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')
+                await waitForEntity(conf.cannedDropdown, 'Canned_response Dropdown', 'sel')//🎈🎈
                 $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
+                await new Promise(resolve => setTimeout(resolve, 700));
                 $(conf.cannedDropdown)[0].click()
                 await insertedTempAlert()
                 console.log("%cCanned response was inserted", "color: green")
@@ -615,7 +599,7 @@ function getExternalTemp() {
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/templates/${item.file}`)
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
@@ -650,21 +634,17 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-            console.log(selectedTemp)
-            let sections = __activeCard.element.querySelectorAll('tr p')
+            let duplicatedMessages = ['Soluciones Técnicas de Google', 'Soluções Técnicas do Google', 'Soluções técnicas do Google', 'Soluções técnicas da Google']
 
             if (selectedTemp.inputs.appointment) {
-                console.log("Email replaced")
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field')
             }
             if (selectedTemp.inputs.name) {
-                console.log("Name replaced")
                 $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name)
                 $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field')
             }
             if (selectedTemp.inputs.phone) {
-                console.log("Phone replaced")
                 $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone)
                 $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field')
             }
@@ -672,7 +652,8 @@ function autoFill() {
                 console.log('No fields');
             }
             //Duplicated signature remotion
-            for (element of sections) { element.innerText.includes('{%neo.vendor_partner%}') ? element.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr span')) { element.innerText.includes('{%neo.vendor_partner%}') ? element.parentElement.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr > td')) { duplicatedMessages.some(e => element.innerText === e) ? element.remove() : null }
             resolve()
         }
         __activeCard.element.querySelector('[aria-label="Email body"]').dispatchEvent(new Event('input', { bubbles: true }))
@@ -766,8 +747,8 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/css/stylesheet.css")
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/testCDN@latest/css/kimsaStyle.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/css/stylesheet.css")
+            //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
@@ -793,7 +774,7 @@ function init() {
 function loadModal() {
     return new Promise(async (resolve) => {
         try {
-            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/testCDN/html/firstModal.html')
+            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/firstModal.html')
                 .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
             console.log("%cModal 1 inserted", "color: green")
             await validateKey()
