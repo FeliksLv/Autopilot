@@ -240,15 +240,31 @@ function getActiveTab() {
     })
 }
 
+function getAgentData() {
+    return new Promise(async (resolve) => {
+        if (localStorage.getItem('ca_agent') === null) {
+            $(conf.agentInfo)[0].click()
+            await waitForEntity('profile-details', 'agent_data', 'sel') // 🎈
+            localStorage.setItem('ca_agent', JSON.stringify({
+                agent: $('profile-details .name').text().split(' ')[0],
+                mail: JSON.parse(window.clientContext).userEmail
+            }))
+            resolve()
+        }
+        else {
+            console.log('Agent data already declared')
+            resolve()
+        }
+    })
+}
 //Creates __caseData responsible for save all data of the current active case 
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
             //Get agent data
+            let agent_data = JSON.parse(localStorage.getItem('ca_agent'))
             $(conf.caseLog_btn)[0].click()
-            $(conf.agentInfo)[0].click()
-            await waitForEntity('profile-details', 'agent_data', 'sel') // 🎈
-            var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: $('profile-details .name').text().split(' ')[0] }
+            var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: JSON.parse(localStorage.getItem('ca_agent')).agent }
             //Defines the case category
             $(conf.logMessages)[0].querySelector('div > div').click()
 
@@ -632,7 +648,7 @@ function autoFill() {
         else {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc })
-            let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google']
+            let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google', 'solucoes tecnicas da google']
 
             if (selectedTemp.inputs.appointment) {
                 $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment)
@@ -882,6 +898,7 @@ async function errorClosure(msg) {
             $(function () { $("#resch_date").datepicker(dateConfig) })
 
             $('#showTime').on("click", async () => {
+
                 //Remove Default + Transition
                 $('#showTime').html('LOADING<i class="fa fa-cog fa-spin"></i>')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
@@ -892,6 +909,7 @@ async function errorClosure(msg) {
                 showDefault('Working...')
 
                 try {
+                    await getAgentData()
                     await attachEmail()
                     $('.alert').removeClass("show")
                     $('.alert').addClass("hide")
