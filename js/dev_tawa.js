@@ -247,12 +247,12 @@ function getAgentData() {
             await waitForEntity('profile-details', 'agent_data', 'sel') // 🎈
             localStorage.setItem('ca_agent', JSON.stringify({
                 agent: $('profile-details .name').text().split(' ')[0],
-                mail: JSON.parse(window.clientContext).userEmail
+                ldap: JSON.parse(window.clientContext).userEmail
             }))
             resolve()
         }
         else {
-            console.log('Agent data already declared')
+            console.log("%cAgent data already declared", "color: green")
             resolve()
         }
     })
@@ -261,10 +261,10 @@ function getAgentData() {
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
-            //Get agent data
+            //Get agent data + case number
             let agent_data = JSON.parse(localStorage.getItem('ca_agent'))
             $(conf.caseLog_btn)[0].click()
-            var bulkData = { activeCase: $('[data-case-id]').attr('data-case-id'), agent: JSON.parse(localStorage.getItem('ca_agent')).agent }
+            var bulkData = { ...agent_data, activeCase: $('[data-case-id]').attr('data-case-id') }
             //Defines the case category
             $(conf.logMessages)[0].querySelector('div > div').click()
 
@@ -530,9 +530,14 @@ function insertNewEmails() {
                 resolve()
             }
             else {
-                $(ccField).val(__caseData.sellerInfo.email)
-                updateInput(ccField)
-                resolve()
+                if (__activeCard.category === 'DFA') {
+                    resolve()
+                }
+                else {
+                    $(ccField).val(__caseData.sellerInfo.email)
+                    updateInput(ccField)
+                    resolve()
+                }
             };
         }
 
