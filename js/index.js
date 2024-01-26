@@ -90,13 +90,11 @@ function insertModal2() {
         $('.modal-body').html("")
         $('.modal-body')[0].appendChild(selectDiv)
 
-        //Criacao da div que contem os select
         await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
             }).then(temp => {
-                //Aqui modifica el height e insere o novo html
                 $('#myModal').css("height", "310px")
                 $('.modal-select').html(temp)
                 resolve()
@@ -123,8 +121,6 @@ function updateCalendar(key) {
         script.type = 'text/javascript';
         script.src = `https://script.google.com/a/macros/google.com/s/AKfycbwTbgE5PuM0JhS9duULuJdCkMsAvIoDx-hgeEr_rS4/dev?key=${key}&portal=Bifrost`;
         document.head.appendChild(script);
-
-
         while (timer < 6000) {
             if (window.__Bifrost !== undefined && __Bifrost.data.length) {
                 console.log(`%cValid Calendar ID`, "color: green")
@@ -146,9 +142,7 @@ function handleSelect(event) {
     let reschInputs = ['#resch_date', '#resch_time', '#resch_period']
     if (event.target === selectType) {
         //Default select behavior
-        $('#showTime').attr('disabled', true)
-        $("#showTime").unbind('mouseenter mouseleave');
-        $("#showTime").css("cursor", "not-allowed")
+        disableFields()
         $(selectEmail).attr('disabled', false)
         $(selectEmail).val('default');
         reschInputs.forEach((input, i) => {
@@ -167,24 +161,14 @@ function handleSelect(event) {
 
     if (event.target === selectEmail) { $('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
     if (reschInputs.some(input => event.target === $(input)[0])) {
-        if (reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default')) {
-            $('#showTime').attr('disabled', false)
-            $("#showTime").hover(function (e) {
-                $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
-            })
-        }
-        else {
-            $('#showTime').attr('disabled', true)
-            $("#showTime").unbind('mouseenter mouseleave');
-            $("#showTime").css("cursor", "not-allowed")
-        }
+        if (reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default')) { activeFields() }
+        else { disableFields() }
     }
 
+
+
     function noReschedule() {
-        $('#showTime').attr('disabled', false)
-        $("#showTime").hover(function (e) {
-            $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
-        })
+        activeFields()
         if ($('#templateEmail').find(':selected').attr('crCode') !== 'default') {
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
@@ -192,9 +176,7 @@ function handleSelect(event) {
             })
         }
         else {
-            $('#showTime').attr('disabled', true)
-            $("#showTime").unbind('mouseenter mouseleave');
-            $("#showTime").css("cursor", "not-allowed")
+            disableFields()
             reschInputs.forEach((input, i) => {
                 $(input).attr('disabled', true)
                 i === 0 ? $(input).val('') : $(input).val('default')
@@ -203,22 +185,24 @@ function handleSelect(event) {
     }
 
     function handleResch() {
-        $('#showTime').attr('disabled', true)
-        $("#showTime").unbind('mouseenter mouseleave');
-        $("#showTime").css("cursor", "not-allowed")
+        disableFields()
         reschInputs.forEach(input => $(input).attr('disabled', false))
     }
 }
-//Make the modal draggable
-function dragModal(event) {
-    if (event.target.closest('.modal-header')) {
-        $("#myModal").draggable({
-            disabled: false,
-            cursor: "grab",
-        })
-    }
-    else { $("#myModal").draggable({ disabled: true }) }
+function disableFields() {
+    $('#showTime').attr('disabled', true)
+    $("#showTime").unbind('mouseenter mouseleave');
+    $("#showTime").css("cursor", "not-allowed").css("background-color", "#815c84")
 }
+
+function activeFields() {
+    $('#showTime').attr('disabled', false)
+    $("#showTime").hover(function (e) {
+        $(this).css("background-color", e.type === "mouseenter" ? "#85258d" : "#815c84").css("cursor", "pointer")
+    })
+}
+//Make the modal draggable
+function dragModal(event) { event.target.closest('.modal-header') ? $("#myModal").draggable({ disabled: false, cursor: "grab" }) : $("#myModal").draggable({ disabled: true }) }
 //Timepicker config
 function timePickerConfig() {
     for (var hh = 1; hh <= 12; hh++) {
@@ -268,7 +252,6 @@ function bulkBifrost() {
             //Defines the case category
             $(conf.logMessages)[0].querySelector('div > div').click()
 
-            //Fix logMessageContent on GLOBAL
             await waitForEntity('div.open', 'extra_information', 'from', $(conf.logMessages)[0])
 
             switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
@@ -279,7 +262,7 @@ function bulkBifrost() {
                 default: __activeCard.category = 'Unidentified'
             }
 
-            //If the case will be LT the tool won't work
+            //If the case will be LT or another one different of the cases above, the tool won't work
             __activeCard.category === "Unidentified" ? reject("UNKNOWN CASE TYPE") : null
 
 
@@ -429,9 +412,7 @@ async function newEmail() {
                 await newEmailAlert(cards)
                 resolve()
             }
-            else {
-                reject("WRONG PAGE")
-            }
+            else { reject("WRONG PAGE") }
         }
         catch (error) { reject(error) }
     })
@@ -446,7 +427,7 @@ function newEmailAlert(length) {
                     clearInterval(interval)
                 }
                 else {
-                    reject('MANY EMAIL CARDS OPEN')
+                    reject('SEVERAL EMAIL CARDS OPEN')
                     clearInterval(interval)
                 }
             }
@@ -456,10 +437,8 @@ function newEmailAlert(length) {
 
 async function getActiveCard() {
     return new Promise((resolve, reject) => {
-        //await new Promise(resolve => setTimeout(resolve, 150));
         let cards = getActiveTab().querySelectorAll('card')
         for (const element of cards) {
-            //$(element).attr('aria-hidden') === 'false' && 
             if ($(element).attr('card-type') === "compose") {
                 console.log("%cCompose card was found", "color: green") //
                 window.__activeCard = {
@@ -530,9 +509,7 @@ function insertNewEmails() {
                 resolve()
             }
             else {
-                if (__activeCard.category === 'DFA') {
-                    resolve()
-                }
+                if (__activeCard.category === 'DFA') { resolve() }
                 else {
                     $(ccField).val(__caseData.sellerInfo.email)
                     updateInput(ccField)
@@ -561,7 +538,6 @@ function removeDefaultEmails() {
     })
 }
 
-
 function insertTemplate() {
     return new Promise(async (resolve, reject) => {
         if ($(conf.writeCards).length === 1) {
@@ -583,9 +559,7 @@ function insertTemplate() {
                 //Non external template
                 $('[aria-label="Insert canned response"]')[0].click()
                 await waitForEntity(conf.cannedInput, 'Canned_response input', 'sel')
-
-                console.log($('#templateEmail').find(':selected').attr('crCode'))
-
+                console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green")
                 $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'))
                 $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>')
                 $(conf.cannedInput)[0].dispatchEvent(new Event('input', { bubbles: true }));
@@ -597,7 +571,7 @@ function insertTemplate() {
             }
         }
         else {
-            reject('MANY EMAIL CARDS OPEN')
+            reject('SEVERAL EMAIL CARDS OPEN')
         }
     })
 }
@@ -777,14 +751,14 @@ function init() {
             await new Promise(resolve => setTimeout(resolve, 1000));
             await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
             await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 4000));
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
             await changeSpinner()
             resolve()
         }
         catch (error) {
-            console.error('Erro ao carregar CDN');
+            console.error('CDN Error');
         }
     })
 }
@@ -863,7 +837,7 @@ async function errorClosure(msg) {
     await removeError()
     await showDefault()
     $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
-    $('#showTime').html('Inserir<i class="fa fa-cog"></i>')
+    $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
 
     gtag('event', 'error_Attaching', {
         send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg
@@ -906,9 +880,8 @@ async function errorClosure(msg) {
 
                 //Remove Default + Transition
                 $('#showTime').html('LOADING<i class="fa fa-cog fa-spin"></i>')
-                $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period, #showTime').prop('disabled', true)
-                $("#showTime").unbind('mouseenter mouseleave');
-                $("#showTime").css("cursor", "not-allowed").css("background-color", "#815c84")
+                $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period').prop('disabled', true)
+                disableFields()
                 $('.alert').removeClass("show")
                 $('.alert').addClass("hide")
                 showDefault('Working...')
@@ -924,18 +897,22 @@ async function errorClosure(msg) {
 
                     $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
+
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
                 }
                 catch (err) {
                     err === "BIFROST BULK ERROR" ? errorClosure("Error fetching your data")
-                        : err === "MANY EMAIL CARDS OPEN" ? errorClosure("Send your other emails!")
+                        : err === "SEVERAL EMAIL CARDS OPEN" ? errorClosure("Send your other emails!")
                             : err === "ERROR UPDATING ADRESSES" ? errorClosure('Error attaching emails')
                                 : err === "WRONG PAGE" ? errorClosure("Focus a case page")
                                     : err === "EMAIL CARD NOT FOUND" ? errorClosure("None card was detected")
                                         : err === "CASE NOT FOUND" ? errorClosure("Case not found on Calendar")
                                             : err === "UNKNOWN CASE TYPE" ? errorClosure("Unknown case type")
                                                 : err === "CDN ERROR" ? errorClosure("Unexpected server error") : errorClosure(err)
+
+                    $('#temp_type').val('default')
+                    $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                 }
             })
         }
