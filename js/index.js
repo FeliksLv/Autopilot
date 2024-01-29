@@ -645,7 +645,7 @@ function autoFill() {
                 console.log('No fields');
             }
             //Duplicated signature remotion
-            for (element of __activeCard.element.querySelectorAll('tr span')) { element.innerText.includes('{%neo.vendor_partner%}') ? element.parentElement.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') && !$(element).html().includes('<au_signature>') ? element.parentElement.remove() : null }
             for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null }
             resolve()
         }
