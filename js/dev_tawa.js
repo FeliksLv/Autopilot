@@ -714,7 +714,6 @@ function changeSpinner() {
     })
 }
 
-/*
 function loadScript(url) {
     return new Promise((resolve, reject) => {
         var script = document.createElement('script');
@@ -725,24 +724,8 @@ function loadScript(url) {
         document.head.appendChild(script);
     });
 }
-*/
 
-function awaitForMoment() {
-    return new Promise(async (resolve) => {
-        await loadScript('https://momentjs.com/downloads/moment.min.js');
-        await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-
-        var esperar = setInterval(() => {
-            if (window.moment && window.moment.tz && moment.tz.countries()) {
-                clearInterval(esperar);
-                console.log('Moment.tz was loaded')
-                resolve()
-            }
-        }, 1)
-    });
-}
-
-function loadScript(url) {
+function fetchLib(url) {
     return new Promise(async (resolve) => {
         try {
             await fetch(`${url}`).then(response => response.text()).then(text => eval(text))
@@ -758,17 +741,17 @@ function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
+            await loadModal()
             await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/css/stylesheet.css")
             //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
-            await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
-            await loadModal()
-            await loadScript('https://momentjs.com/downloads/moment.min.js');
-            await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
-            await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
+            await fetchLib('https://momentjs.com/downloads/moment.min.js');
+            await fetchLib("https://code.jquery.com/jquery-3.7.1.min.js");
+            await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
+            await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
+            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await changeSpinner()
             resolve()
         }
