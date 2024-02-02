@@ -30,17 +30,6 @@ function openModal() {
     $('#circle').hide()
 }
 
-//Load CDNs
-function loadScript(url) {
-    return new Promise((resolve, reject) => {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        script.onload = resolve(`Fully loaded: ${url}`);
-        script.onerror = reject(`Loading error: ${url}`);
-        document.head.appendChild(script);
-    });
-}
 //Load CSS
 function loadCSS(url) {
     return new Promise((resolve, reject) => {
@@ -90,7 +79,7 @@ function insertModal2() {
         $('.modal-body').html("")
         $('.modal-body')[0].appendChild(selectDiv)
 
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -388,17 +377,6 @@ function waitForEntity(el, id, type, origin) {
     })
 }
 
-function loadScript(url) {
-    return new Promise((resolve, reject) => {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        script.onload = resolve(`Fully loaded: ${url}`);
-        script.onerror = reject(`Loading error: ${url}`);
-        document.head.appendChild(script);
-    });
-}
-
 async function newEmail() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -592,7 +570,7 @@ function getExternalTemp() {
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/templates/${item.file}`)
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
@@ -736,22 +714,59 @@ function changeSpinner() {
     })
 }
 
+/*
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        script.onload = resolve(`Fully loaded: ${url}`);
+        script.onerror = reject(`Loading error: ${url}`);
+        document.head.appendChild(script);
+    });
+}
+*/
+
+function awaitForMoment() {
+    return new Promise(async (resolve) => {
+        await loadScript('https://momentjs.com/downloads/moment.min.js');
+        await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
+
+        var esperar = setInterval(() => {
+            if (window.moment && window.moment.tz && moment.tz.countries()) {
+                clearInterval(esperar);
+                console.log('Moment.tz was loaded')
+                resolve()
+            }
+        }, 1)
+    });
+}
+
+function loadScript(url) {
+    return new Promise(async (resolve) => {
+        try {
+            await fetch(`${url}`).then(response => response.text()).then(text => eval(text))
+            console.log(`${url} was fully Loaded`)
+            resolve()
+        }
+        catch (err) { console.log(err) }
+    })
+}
+
+
 function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/css/stylesheet.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/css/stylesheet.css")
             //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
-            await new Promise(resolve => setTimeout(resolve, 1000));
             await loadModal()
             await loadScript('https://momentjs.com/downloads/moment.min.js');
-            await new Promise(resolve => setTimeout(resolve, 1000));
             await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
             await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-            await new Promise(resolve => setTimeout(resolve, 4000));
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
             await changeSpinner()
@@ -767,7 +782,7 @@ function init() {
 function loadModal() {
     return new Promise(async (resolve) => {
         try {
-            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/firstModal.html')
+            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/firstModal.html')
                 .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
             console.log("%cModal 1 inserted", "color: green")
             await validateKey()
