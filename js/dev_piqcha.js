@@ -251,6 +251,7 @@ function bulkBifrost() {
                 default: __activeCard.category = 'Unidentified'
             }
 
+            __activeCard.caseType === $(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText
             //If the case will be LT or another one different of the cases above, the tool won't work
             __activeCard.category === "Unidentified" ? reject("UNKNOWN CASE TYPE") : null
 
@@ -439,6 +440,7 @@ async function updateAdresses() {
             await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
             //Open the email list
             __activeCard.element.querySelector('.address[buttoncontent]').click();
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await waitForEntity(conf.dropdownEmails, 'dropdownEmails', 'sel');
             //Change to: technical-solutions@google.com
             [...$(`${conf.dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null })
@@ -652,8 +654,7 @@ function showSuccess() {
             $(".msg").text('Successful execution')
             $('.close-btn').show()
             $('.alert').off()
-
-            gtag('event', 'successfuly_Attached', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id })
+            gtag('event', 'successfuly_Attached', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, category: __activeCard.caseType })
             resolve()
         })
     })
@@ -714,17 +715,6 @@ function changeSpinner() {
     })
 }
 
-function loadScript(url) {
-    return new Promise((resolve, reject) => {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        script.onload = resolve(`Fully loaded: ${url}`);
-        script.onerror = reject(`Loading error: ${url}`);
-        document.head.appendChild(script);
-    });
-}
-
 function fetchLib(url) {
     return new Promise(async (resolve) => {
         try {
@@ -736,21 +726,20 @@ function fetchLib(url) {
     })
 }
 
-
 function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await fetchLib("https://code.jquery.com/jquery-3.7.1.min.js");
-            await loadModal()
-            await fetchLib('https://momentjs.com/downloads/moment.min.js');
-            await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
-            await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
             await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/css/stylesheet.css")
             //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
+            await fetchLib("https://code.jquery.com/jquery-3.7.1.min.js");
+            await loadModal()
+            await fetchLib('https://momentjs.com/downloads/moment.min.js');
+            await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
+            await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await changeSpinner()
             resolve()
@@ -799,13 +788,12 @@ async function attachEmail() {
 };
 
 async function ga4Setup() {
-    await loadGA4()
+    // await loadGA4()
+    await loadScript("https://www.googletagmanager.com/gtag/js?id=G-XKDBXFPDXE")
     await new Promise(resolve => setTimeout(resolve, 1000));
     var user = JSON.parse(window.clientContext).userEmail.replace('@google.com', '')
     gtag('config', 'G-XKDBXFPDXE', {
-        'debug_mode': true, 'user_id': user, 'user_properties': {
-            'user_ID': user
-        }
+        'debug_mode': true, 'user_id': user, 'user_properties': {'user_ID': user}
     });
     gtag('event', 'initialized', { send_to: 'G-XKDBXFPDXE' })
 }
@@ -813,13 +801,23 @@ async function ga4Setup() {
 function loadGA4() {
     return new Promise((resolve, reject) => {
         var script = document.createElement('script');
-        script.async = true
         script.src = "https://www.googletagmanager.com/gtag/js?id=G-XKDBXFPDXE";
         script.onload = resolve(`Fully loaded`);
         script.onerror = reject(`Loading error`);
         document.head.appendChild(script);
     });
 }
+
+/*function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        script.onload = resolve(`Fully loaded: ${url}`);
+        script.onerror = reject(`Loading error: ${url}`);
+        document.head.appendChild(script);
+    });
+}*/
 
 function saveCookie(element) {
     if ($(element.target).is('.input-modal > input')) {
@@ -836,10 +834,7 @@ async function errorClosure(msg) {
     await showDefault()
     $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
-
-    gtag('event', 'error_Attaching', {
-        send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg
-    })
+    gtag('event', 'error_Attaching', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg, category: __activeCard.caseType })
 };
 
 (async function main() {
