@@ -30,6 +30,17 @@ function openModal() {
     $('#circle').hide()
 }
 
+//Load JS
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        script.onload = resolve(`Fully loaded: ${url}`);
+        script.onerror = reject(`Loading error: ${url}`);
+        document.head.appendChild(script);
+    });
+}
 //Load CSS
 function loadCSS(url) {
     return new Promise((resolve, reject) => {
@@ -744,9 +755,7 @@ function init() {
             await changeSpinner()
             resolve()
         }
-        catch (error) {
-            console.error('CDN Error');
-        }
+        catch (error) {console.error('CDN Error')}
     })
 }
 
