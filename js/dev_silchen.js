@@ -733,16 +733,21 @@ function fetchLib(url) {
 function getCalendarID() {
     return new Promise(async (resolve) => {
         try {
-            for (const user_data of window.__userData) {
-                let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id), }
-                if (dec.ag === JSON.parse(localStorage.getItem('ca_agent')).ldap.replace('@google.com', '')) {
-                    let date = new Date()
-                    date.setDate(date.getDate() + 400)
-                    document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
-                    console.log('CalendarKey was defined')
-                    resolve()
+            var waitForUsers = setInterval(() => {
+                if (window.__userData !== undefined && __userData.length) {
+                    clearInterval(waitForUsers)
+                    for (const user_data of window.__userData) {
+                        let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id), }
+                        if (dec.ag === JSON.parse(localStorage.getItem('ca_agent')).ldap.replace('@google.com', '')) {
+                            let date = new Date()
+                            date.setDate(date.getDate() + 400)
+                            document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
+                            console.log('CalendarKey was defined')
+                            resolve()
+                        }
+                    }
                 }
-            }
+            }, 100)
         }
         catch (err) { console.log(err) }
     })
