@@ -19,6 +19,7 @@ const conf = {
 
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
 function qaData(emailData) { return window.__qaData = emailData }
+function userData(users) { return window.__userData = users }
 
 function closeModal() {
     $('#myModal').hide()
@@ -29,8 +30,7 @@ function openModal() {
     $('#myModal').show()
     $('#circle').hide()
 }
-
-//Load CDNs
+//Load JS
 function loadScript(url) {
     return new Promise((resolve, reject) => {
         var script = document.createElement('script');
@@ -52,7 +52,6 @@ function loadCSS(url) {
         document.head.appendChild(link);
     });
 }
-
 //Calendar ID Validation 
 async function validateId() {
     const msgContainer = document.querySelector(".message-container")
@@ -90,7 +89,7 @@ function insertModal2() {
         $('.modal-body').html("")
         $('.modal-body')[0].appendChild(selectDiv)
 
-        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/autopilot.html')
+        await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/autopilot.html')
             .then(response => {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
@@ -158,14 +157,11 @@ function handleSelect(event) {
             if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
         }
     }
-
     if (event.target === selectEmail) { $('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
     if (reschInputs.some(input => event.target === $(input)[0])) {
         if (reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default')) { activeFields() }
         else { disableFields() }
     }
-
-
 
     function noReschedule() {
         activeFields()
@@ -183,7 +179,6 @@ function handleSelect(event) {
             })
         }
     }
-
     function handleResch() {
         disableFields()
         reschInputs.forEach(input => $(input).attr('disabled', false))
@@ -194,7 +189,6 @@ function disableFields() {
     $("#showTime").unbind('mouseenter mouseleave');
     $("#showTime").css("cursor", "not-allowed").css("background-color", "#815c84")
 }
-
 function activeFields() {
     $('#showTime').attr('disabled', false)
     $("#showTime").hover(function (e) {
@@ -262,9 +256,9 @@ function bulkBifrost() {
                 default: __activeCard.category = 'Unidentified'
             }
 
+            __activeCard.caseType = $(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText
             //If the case will be LT or another one different of the cases above, the tool won't work
             __activeCard.category === "Unidentified" ? reject("UNKNOWN CASE TYPE") : null
-
 
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
@@ -277,7 +271,6 @@ function bulkBifrost() {
                     bulkData.timezone = richContent.match(region)[0];
                     bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT_NAME')
                 }
-
                 //Extra informations to Non DFA cases
                 else if ($(message).html().includes('Review case in Connect Sales') && __activeCard.category === 'Greentea Transfer') {
                     message.querySelector('div > div').click()
@@ -388,17 +381,6 @@ function waitForEntity(el, id, type, origin) {
     })
 }
 
-function loadScript(url) {
-    return new Promise((resolve, reject) => {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        script.onload = resolve(`Fully loaded: ${url}`);
-        script.onerror = reject(`Loading error: ${url}`);
-        document.head.appendChild(script);
-    });
-}
-
 async function newEmail() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -461,6 +443,7 @@ async function updateAdresses() {
             await waitForEntity('.address[buttoncontent]', 'dropdownButton', 'from', __activeCard.element)
             //Open the email list
             __activeCard.element.querySelector('.address[buttoncontent]').click();
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await waitForEntity(conf.dropdownEmails, 'dropdownEmails', 'sel');
             //Change to: technical-solutions@google.com
             [...$(`${conf.dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null })
@@ -592,7 +575,7 @@ function getExternalTemp() {
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/templates/${item.file}`)
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
                     .then(response => {
                         if (!response.ok) { reject('CDN ERROR') }
                         else { return response.text() }
@@ -645,7 +628,7 @@ function autoFill() {
                 console.log('No fields');
             }
             //Duplicated signature remotion
-            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') && !$(element).html().includes('<au_signature>') ? element.parentElement.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') ? element.parentElement.remove() : null }
             for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null }
             resolve()
         }
@@ -674,8 +657,7 @@ function showSuccess() {
             $(".msg").text('Successful execution')
             $('.close-btn').show()
             $('.alert').off()
-
-            gtag('event', 'successfuly_Attached', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id })
+            gtag('event', 'successfuly_Attached', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, category: __activeCard.caseType })
             resolve()
         })
     })
@@ -736,30 +718,62 @@ function changeSpinner() {
     })
 }
 
+function fetchLib(url) {
+    return new Promise(async (resolve) => {
+        try {
+            await fetch(`${url}`).then(response => response.text()).then(text => eval(text))
+            console.log(`${url} was fully Loaded`)
+            resolve()
+        }
+        catch (err) { console.log(err) }
+    })
+}
+
+function getCalendarID() {
+    return new Promise(async (resolve) => {
+        try {
+            var waitForUsers = setInterval(() => {
+                if (window.__userData !== undefined && __userData.length) {
+                    clearInterval(waitForUsers)
+                    for (const user_data of window.__userData) {
+                        let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id), }
+                        if (dec.ag === JSON.parse(localStorage.getItem('ca_agent')).ldap.replace('@google.com', '')) {
+                            let date = new Date()
+                            date.setDate(date.getDate() + 400)
+                            document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
+                            console.log(`%cCalendar key was summoned`, "color: green")
+                            resolve()
+                        }
+                    }
+                }
+            }, 100)
+        }
+        catch (err) { console.log(err) }
+    })
+}
+
 function init() {
     return new Promise(async (resolve) => {
         try {
             await ga4Setup()
-            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/css/stylesheet.css")
+            await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/css/stylesheet.css")
             //await loadCSS("https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases@latest/css/kimsaStyle.css")
             await loadCSS('https://fonts.googleapis.com/css2?family=Noto+Sans+Shavian&family=Poppins:wght@300&display=swap')
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")
-            await loadScript("https://code.jquery.com/jquery-3.7.1.min.js");
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            await loadModal()
-            await loadScript('https://momentjs.com/downloads/moment.min.js');
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            await loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
-            await loadScript("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-            await new Promise(resolve => setTimeout(resolve, 4000));
-            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css')
+            await fetchLib("https://code.jquery.com/jquery-3.7.1.min.js");
+            await getAgentData()
+            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbzGihijGbY6DGdTrJ_u8tVynxHEq5-Z2rG0FALFWc5lTVUDiLuTBoVK8bEl5A0cWJhqWw/exec?portal=userData");
+            await getCalendarID()
+            await loadModal()
+            await fetchLib('https://momentjs.com/downloads/moment.min.js');
+            await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
+            await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
+            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await changeSpinner()
             resolve()
         }
-        catch (error) {
-            console.error('CDN Error');
-        }
+        catch (error) { console.error('CDN Error') }
     })
 }
 
@@ -767,7 +781,7 @@ function init() {
 function loadModal() {
     return new Promise(async (resolve) => {
         try {
-            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot_cases/html/firstModal.html')
+            await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/firstModal.html')
                 .then(response => response.text()).then(temp => { $('.modal-container').html(temp) })
             console.log("%cModal 1 inserted", "color: green")
             await validateKey()
@@ -802,12 +816,10 @@ async function attachEmail() {
 
 async function ga4Setup() {
     await loadGA4()
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     var user = JSON.parse(window.clientContext).userEmail.replace('@google.com', '')
     gtag('config', 'G-XKDBXFPDXE', {
-        'debug_mode': true, 'user_id': user, 'user_properties': {
-            'user_ID': user
-        }
+        'debug_mode': true, 'user_id': user, 'user_properties': { 'user_ID': user }
     });
     gtag('event', 'initialized', { send_to: 'G-XKDBXFPDXE' })
 }
@@ -838,10 +850,7 @@ async function errorClosure(msg) {
     await showDefault()
     $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
-
-    gtag('event', 'error_Attaching', {
-        send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg
-    })
+    gtag('event', 'error_Attaching', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg, category: __activeCard.caseType })
 };
 
 (async function main() {
@@ -875,9 +884,7 @@ async function errorClosure(msg) {
             clearInterval(modalLoaded);
             timePickerConfig()
             $(function () { $("#resch_date").datepicker(dateConfig) })
-
             $('#showTime').on("click", async () => {
-
                 //Remove Default + Transition
                 $('#showTime').html('LOADING<i class="fa fa-cog fa-spin"></i>')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period').prop('disabled', true)
@@ -885,9 +892,7 @@ async function errorClosure(msg) {
                 $('.alert').removeClass("show")
                 $('.alert').addClass("hide")
                 showDefault('Working...')
-
                 try {
-                    await getAgentData()
                     await attachEmail()
                     $('.alert').removeClass("show")
                     $('.alert').addClass("hide")
@@ -897,7 +902,6 @@ async function errorClosure(msg) {
 
                     $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
-
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
                 }
