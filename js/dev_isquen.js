@@ -19,23 +19,7 @@ const conf = {
 
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar }
 function qaData(emailData) { return window.__qaData = emailData }
-function userData(users) {
-    return new Promise(async (resolve) => {
-        try {
-            for (const user_data of users) {
-                let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id), }
-                if (dec.ag === JSON.parse(localStorage.getItem('ca_agent')).ldap.replace('@google.com', '')) {
-                    let date = new Date()
-                    date.setDate(date.getDate() + 400)
-                    document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
-                    console.log('CalendarKey was defined')
-                    resolve()
-                }
-            }
-        }
-        catch (err) { }
-    })
-}
+function userData(users) { return window.__userData = users }
 
 function closeModal() {
     $('#myModal').hide()
@@ -746,6 +730,24 @@ function fetchLib(url) {
     })
 }
 
+function getCalendarID() {
+    return new Promise(async (resolve) => {
+        try {
+            for (const user_data of window.__userData) {
+                let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id), }
+                if (dec.ag === JSON.parse(localStorage.getItem('ca_agent')).ldap.replace('@google.com', '')) {
+                    let date = new Date()
+                    date.setDate(date.getDate() + 400)
+                    document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
+                    console.log('CalendarKey was defined')
+                    resolve()
+                }
+            }
+        }
+        catch (err) { console.log(err) }
+    })
+}
+
 function init() {
     return new Promise(async (resolve) => {
         try {
@@ -758,6 +760,7 @@ function init() {
             await fetchLib("https://code.jquery.com/jquery-3.7.1.min.js");
             await getAgentData()
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbzGihijGbY6DGdTrJ_u8tVynxHEq5-Z2rG0FALFWc5lTVUDiLuTBoVK8bEl5A0cWJhqWw/exec?portal=userData");
+            await getCalendarID()
             await loadModal()
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await fetchLib('https://momentjs.com/downloads/moment.min.js');
