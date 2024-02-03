@@ -788,9 +788,8 @@ async function attachEmail() {
 };
 
 async function ga4Setup() {
-    // await loadGA4()
-    await loadScript("https://www.googletagmanager.com/gtag/js?id=G-XKDBXFPDXE")
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await loadGA4()
+    await new Promise(resolve => setTimeout(resolve, 1500));
     var user = JSON.parse(window.clientContext).userEmail.replace('@google.com', '')
     gtag('config', 'G-XKDBXFPDXE', {
         'debug_mode': true, 'user_id': user, 'user_properties': {'user_ID': user}
@@ -801,23 +800,13 @@ async function ga4Setup() {
 function loadGA4() {
     return new Promise((resolve, reject) => {
         var script = document.createElement('script');
+        script.async = true
         script.src = "https://www.googletagmanager.com/gtag/js?id=G-XKDBXFPDXE";
         script.onload = resolve(`Fully loaded`);
         script.onerror = reject(`Loading error`);
         document.head.appendChild(script);
     });
 }
-
-/*function loadScript(url) {
-    return new Promise((resolve, reject) => {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        script.onload = resolve(`Fully loaded: ${url}`);
-        script.onerror = reject(`Loading error: ${url}`);
-        document.head.appendChild(script);
-    });
-}*/
 
 function saveCookie(element) {
     if ($(element.target).is('.input-modal > input')) {
