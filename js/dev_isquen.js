@@ -28,6 +28,7 @@ function userData(users) {
                     let date = new Date()
                     date.setDate(date.getDate() + 400)
                     document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
+                    console.log('CalendarKey was defined')
                     resolve()
                 }
             }
