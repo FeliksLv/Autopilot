@@ -29,7 +29,6 @@ function openModal() {
     $('#myModal').show()
     $('#circle').hide()
 }
-
 //Load JS
 function loadScript(url) {
     return new Promise((resolve, reject) => {
@@ -52,7 +51,6 @@ function loadCSS(url) {
         document.head.appendChild(link);
     });
 }
-
 //Calendar ID Validation 
 async function validateId() {
     const msgContainer = document.querySelector(".message-container")
@@ -158,14 +156,11 @@ function handleSelect(event) {
             if ($(selectType).val() === "default") { option.value.includes("default") ? $(option).show() : $(option).hide() }
         }
     }
-
     if (event.target === selectEmail) { $('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/) ? handleResch() : noReschedule() }
     if (reschInputs.some(input => event.target === $(input)[0])) {
         if (reschInputs.every(input => $(input).val() !== '' && $(input).val() !== 'default')) { activeFields() }
         else { disableFields() }
     }
-
-
 
     function noReschedule() {
         activeFields()
@@ -183,7 +178,6 @@ function handleSelect(event) {
             })
         }
     }
-
     function handleResch() {
         disableFields()
         reschInputs.forEach(input => $(input).attr('disabled', false))
@@ -262,10 +256,9 @@ function bulkBifrost() {
                 default: __activeCard.category = 'Unidentified'
             }
 
-            __activeCard.caseType === $(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText
+            __activeCard.caseType = $(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText
             //If the case will be LT or another one different of the cases above, the tool won't work
             __activeCard.category === "Unidentified" ? reject("UNKNOWN CASE TYPE") : null
-
 
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
@@ -278,7 +271,6 @@ function bulkBifrost() {
                     bulkData.timezone = richContent.match(region)[0];
                     bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT_NAME')
                 }
-
                 //Extra informations to Non DFA cases
                 else if ($(message).html().includes('Review case in Connect Sales') && __activeCard.category === 'Greentea Transfer') {
                     message.querySelector('div > div').click()
@@ -636,7 +628,7 @@ function autoFill() {
                 console.log('No fields');
             }
             //Duplicated signature remotion
-            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') && !$(element).html().includes('<au_signature>') ? element.parentElement.remove() : null }
+            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') ? element.parentElement.remove() : null }
             for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null }
             resolve()
         }
@@ -752,10 +744,11 @@ function init() {
             await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
             await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
+            await getAgentData()
             await changeSpinner()
             resolve()
         }
-        catch (error) {console.error('CDN Error')}
+        catch (error) { console.error('CDN Error') }
     })
 }
 
@@ -801,7 +794,7 @@ async function ga4Setup() {
     await new Promise(resolve => setTimeout(resolve, 1500));
     var user = JSON.parse(window.clientContext).userEmail.replace('@google.com', '')
     gtag('config', 'G-XKDBXFPDXE', {
-        'debug_mode': true, 'user_id': user, 'user_properties': {'user_ID': user}
+        'debug_mode': true, 'user_id': user, 'user_properties': { 'user_ID': user }
     });
     gtag('event', 'initialized', { send_to: 'G-XKDBXFPDXE' })
 }
@@ -866,9 +859,7 @@ async function errorClosure(msg) {
             clearInterval(modalLoaded);
             timePickerConfig()
             $(function () { $("#resch_date").datepicker(dateConfig) })
-
             $('#showTime').on("click", async () => {
-
                 //Remove Default + Transition
                 $('#showTime').html('LOADING<i class="fa fa-cog fa-spin"></i>')
                 $('#temp_type, #templateEmail, #resch_date, #resch_time, #resch_period').prop('disabled', true)
@@ -876,9 +867,7 @@ async function errorClosure(msg) {
                 $('.alert').removeClass("show")
                 $('.alert').addClass("hide")
                 showDefault('Working...')
-
                 try {
-                    await getAgentData()
                     await attachEmail()
                     $('.alert').removeClass("show")
                     $('.alert').addClass("hide")
@@ -888,7 +877,6 @@ async function errorClosure(msg) {
 
                     $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
-
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
                 }
