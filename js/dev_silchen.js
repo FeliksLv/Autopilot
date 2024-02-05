@@ -94,7 +94,7 @@ function insertModal2() {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
             }).then(temp => {
-                $('#myModal').css("height", "310px")
+                $('#myModal').css("height", "330px")
                 $('.modal-select').html(temp)
                 resolve()
             })
@@ -189,7 +189,6 @@ function disableFields() {
     $("#showTime").unbind('mouseenter mouseleave');
     $("#showTime").css("cursor", "not-allowed").css("background-color", "#815c84")
 }
-
 function activeFields() {
     $('#showTime').attr('disabled', false)
     $("#showTime").hover(function (e) {
@@ -742,7 +741,7 @@ function getCalendarID() {
                             let date = new Date()
                             date.setDate(date.getDate() + 400)
                             document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`
-                            console.log('CalendarKey was defined')
+                            console.log(`%cCalendar key was summoned`, "color: green")
                             resolve()
                         }
                     }
@@ -767,10 +766,10 @@ function init() {
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbzGihijGbY6DGdTrJ_u8tVynxHEq5-Z2rG0FALFWc5lTVUDiLuTBoVK8bEl5A0cWJhqWw/exec?portal=userData");
             await getCalendarID()
             await loadModal()
-            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await fetchLib('https://momentjs.com/downloads/moment.min.js');
             await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
             await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
+            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await changeSpinner()
             resolve()
         }
@@ -901,7 +900,6 @@ async function errorClosure(msg) {
                     await removeError()
                     await showDefault()
 
-                    $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
