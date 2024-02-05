@@ -94,7 +94,7 @@ function insertModal2() {
                 if (!response.ok) { reject('MODAL2 HTML FAILED') }
                 else { return response.text() }
             }).then(temp => {
-                $('#myModal').css("height", "310px")
+                $('#myModal').css("height", "330px")
                 $('.modal-select').html(temp)
                 resolve()
             })
@@ -900,7 +900,6 @@ async function errorClosure(msg) {
                     await removeError()
                     await showDefault()
 
-                    $('#temp_type').attr('disabled', false)
                     $('#temp_type').val('default')
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
