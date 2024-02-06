@@ -848,7 +848,9 @@ async function errorClosure(msg) {
     await showError(msg)
     await removeError()
     await showDefault()
+    $('#temp_type').val('default')
     $('#temp_type, #templateEmail, #showTime').prop('disabled', false)
+    $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
     gtag('event', 'error_Attaching', { send_to: `G-XKDBXFPDXE`, case: __caseData.case_id, type: msg, category: __activeCard.caseType })
 };
@@ -901,6 +903,7 @@ async function errorClosure(msg) {
                     await showDefault()
 
                     $('#temp_type').val('default')
+                    $('#temp_type, #templateEmail').prop('disabled', false)
                     $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                     $('#showTime').html('INSERT<i class="fa fa-cog"></i>')
                 }
@@ -913,9 +916,6 @@ async function errorClosure(msg) {
                                         : err === "CASE NOT FOUND" ? errorClosure("Case not found on Calendar")
                                             : err === "UNKNOWN CASE TYPE" ? errorClosure("Unknown case type")
                                                 : err === "CDN ERROR" ? errorClosure("Unexpected server error") : errorClosure(err)
-
-                    $('#temp_type').val('default')
-                    $('#temp_type')[0].dispatchEvent(new Event('change', { bubbles: true }))
                 }
             })
         }
