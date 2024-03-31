@@ -1,3 +1,4 @@
+const options = { childList: true, subtree: true, attributes: true, characterData: false };
 const conf = {
     logMessages: '.active-case-log-container case-message-view',
     agentInfo: 'profile material-button',
@@ -18,11 +19,10 @@ const conf = {
     cannedDropdown: '.pane.selections.visible material-select-dropdown-item[aria-selected="false"] span',
     createEmail: '[aria-label="Email body"]'
 };
-const options = { childList: true, subtree: true, attributes: true, characterData: false };
+
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar };
 function qaData(emailData) { return window.__qaData = emailData };
 function userData(users) { return window.__userData = users };
-
 function closeModal() {
     $('#myModal').hide();
     $('#circle').css("display", "flex");
@@ -229,7 +229,6 @@ function getAgentData() {
         };
     });
 };
-
 ///window.dropdownEmails222 = '.pane.material-dropdown-select-popup [aria-activedescendant*="email-address-id"]';
 //Creates __caseData responsible for save all data of the current active case 
 function bulkBifrost() {
@@ -409,7 +408,7 @@ async function newEmail() {
         try {
             if ($(conf.writeCard_btn).length) {
                 await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
-                await waitForMutation(createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
+                await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
                 console.log("%cCreated email", "color: green");
                 resolve();
             }
@@ -616,7 +615,7 @@ function autoFill() {
             for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null };
             resolve();
         };
-        __activeCard.element.querySelector(createEmail).dispatchEvent(new Event('input', { bubbles: true }));
+        __activeCard.element.querySelector(conf.createEmail).dispatchEvent(new Event('input', { bubbles: true }));
         console.log("%cAutofilled", "color: green");
     });
 };
