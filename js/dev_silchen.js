@@ -1,3 +1,4 @@
+const options = { childList: true, subtree: true, attributes: true, characterData: false };
 const conf = {
     logMessages: '.active-case-log-container case-message-view',
     agentInfo: 'profile material-button',
@@ -16,13 +17,16 @@ const conf = {
     signature: '#email-body-content-top-content > .replaced:last-child',
     cannedInput: 'canned-response-dialog input',
     cannedDropdown: '.pane.selections.visible material-select-dropdown-item[aria-selected="false"] span',
-    createEmail: '[aria-label="Email body"]'
+    createEmail: '[aria-label="Email body"]',
+    paneCannedInput: '.pane.modal.visible dynamic-component',
+    highlightedTerms: '#email-body-content-top-content span.field',
+    cannedResIcon: '[aria-label="Insert canned response"]',
+    ccEmail: '[aria-label="Enter Cc email address"]'
 };
-const options = { childList: true, subtree: true, attributes: true, characterData: false };
+//Appscript Dependencies
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar };
 function qaData(emailData) { return window.__qaData = emailData };
 function userData(users) { return window.__userData = users };
-
 function closeModal() {
     $('#myModal').hide();
     $('#circle').css("display", "flex");
@@ -216,7 +220,8 @@ function getActiveTab() {
 function getAgentData() {
     return new Promise(async (resolve) => {
         if (localStorage.getItem('ca_agent') === null) {
-            await waitForMutation('profile-details', 'agent_data', 'sel', ...[,], 'click', $(conf.agentInfo)[0], ...[,]); // true 🎈🎈
+            //await waitForMutation('profile-details', 'agent_data', 'sel', ...[,], 'click', $(conf.agentInfo)[0], ...[,]); // true 🎈🎈
+            await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
             localStorage.setItem('ca_agent', JSON.stringify({
                 agent: $('profile-details .name').text().split(' ')[0],
                 ldap: JSON.parse(window.clientContext).userEmail
@@ -229,9 +234,6 @@ function getAgentData() {
         };
     });
 };
-
-///window.dropdownEmails222 = '.pane.material-dropdown-select-popup [aria-activedescendant*="email-address-id"]';
-//Creates __caseData responsible for save all data of the current active case 
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -240,7 +242,8 @@ function bulkBifrost() {
             $(conf.caseLog_btn)[0].click();
             var bulkData = { ...agent_data, activeCase: $('[data-case-id]').attr('data-case-id') };
 
-            await waitForMutation('div.open', 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div > div', ...[,], false);
+            //await waitForMutation('div.open', 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div > div', ...[,], false);
+            await waitForMutation('div.open', 'extra_information', 'click', 'div > div > div', $(conf.logMessages)[0], 'from', false);
             switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
                 case 'Submitted via Greentea Transfer': __activeCard.category = 'Greentea Transfer'; break;
                 case 'Submitted via Help Center Direct to Form':
@@ -254,7 +257,8 @@ function bulkBifrost() {
 
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
-                    await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', 'An appointment has been successfully created', false);
+                    //await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', 'successfully created', false);
+                    await waitForMutation(conf.logMessageContent, 'extra_information', 'click', 'div > div > div', message, 'from', false, 'successfully created');
                     var region = /(?<=\[)(.*?)(?=\])/;
                     var richContent = $(message.querySelector(conf.logMessageContent)).text();
                     //Get Name only returns DEFAULT on tabs other than a case tab
@@ -264,7 +268,9 @@ function bulkBifrost() {
                 }
                 //Extra informations to Non DFA cases
                 else if ($(message).html().includes('Review case in Connect Sales') && __activeCard.category === 'Greentea Transfer') {
-                    await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', ...[,], false);
+                    //await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', ...[,], false);
+                    await waitForMutation(conf.logMessageContent, 'extra_information', 'click', 'div > div > div', message, 'from', false);
+
                     let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim();
                     bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() };
                     for (const data of $('.message-body.message-body1 tbody > tr')) {
@@ -279,7 +285,9 @@ function bulkBifrost() {
                     /*$(conf.logMessages)[0].querySelector('div > div').click()
                     await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0]);
                     */
-                    await waitForMutation(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div', ...[,], false);
+
+                    // await waitForMutation(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div', ...[,], false);
+                    await waitForMutation(conf.logDfaContent, 'extra_information', 'click', 'div > div', $(conf.logMessages)[0], 'from', false);
                     bulkData.website = [...$(conf.logMessages)[0].querySelectorAll('a')].reduce((acc, url) => { return (reg.test(url.innerHTML) ? url.innerHTML : acc) }, "DEFAULT_URL");
                 };
             };
@@ -348,76 +356,6 @@ function bulkBifrost() {
         catch (error) { reject(error) };
     });
 };
-
-function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
-    return new Promise((resolve, reject) => {
-        let findMutation = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                if (txt && mutation.target.innerText.includes(txt)) {
-                    console.log(`%cText Found`, "color: orange");
-                    if (reuse && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(mutation.target.innerText);
-                        resolve(); break;
-                    };
-                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(mutation.target.innerText);
-                        resolve(); break;
-                    };
-                }
-                else if (typeof txt === 'undefined') {
-                    if (reuse && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(`%cSelector ${id} has been found`, "color: orange");
-                        resolve(); break;
-                    };
-                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(`%cSelector ${id} has been found`, "color: orange");
-                        resolve(); break;
-                    };
-                };
-            };
-        });
-        findMutation.observe(document, options);
-
-        var interval = setInterval(() => {
-            console.log(`%cReinitializing ${event} event`, "color: red");
-            if (event === 'click') {
-                type === 'from' && event && aim ? origin.querySelector(aim).click()
-                    : type === 'sel' && event && aim ? $(aim)[0].click() : null;
-            }
-            else {
-                type === 'from' && event && aim ? origin.querySelector(aim).dispatchEvent(new Event(event), { bubbles: true })
-                    : type === 'sel' && event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
-                // : !event && !aim ? null
-            };
-        }, 1000);
-
-        console.log(origin);
-        console.log(aim);
-        origin ? console.log(origin.querySelector(aim)) : console.log($(aim)[0]);
-    });
-};
-async function newEmail() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if ($(conf.writeCard_btn).length) {
-                await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
-                await waitForMutation(createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
-                console.log("%cCreated email", "color: green");
-                resolve();
-            }
-            else { reject("WRONG PAGE") };
-        }
-        catch (error) { reject(error) };
-    });
-};
 async function getActiveCard() {
     return new Promise(async (resolve, reject) => {
         //Delay to prevent style changes
@@ -441,11 +379,13 @@ async function getActiveCard() {
 async function updateAdresses() {
     return new Promise(async (resolve, reject) => {
         try {
-            await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'from', __activeCard.element, 'click', '.address[buttoncontent]', ...[,]);
+            //await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'from', __activeCard.element, 'click', '.address[buttoncontent]', ...[,]);
+            await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'click', '.address[buttoncontent]', __activeCard.element, 'from');
+
             //Change to: technical-solutions@google.com
             [...$(`${conf.dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null });
             //Update the attendees
-            __activeCard.element.querySelector(conf.showCC_btn) ? await waitForMutation('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element, 'click', conf.showCC_btn, ...[,]) : null;
+            __activeCard.element.querySelector(conf.showCC_btn) ? await waitForMutation(conf.ccEmail, 'emailAdresses', 'click', conf.showCC_btn, __activeCard.element, 'from') : null;
             //Remove default emails
             await removeDefaultEmails();
             //Update all calendar attendees including the seller
@@ -456,6 +396,15 @@ async function updateAdresses() {
         catch (err) {
             console.log(err);
             reject("ERROR UPDATING ADRESSES");
+        };
+    });
+};
+function removeDefaultEmails() {
+    return new Promise(async (resolve) => {
+        for (const emails of __activeCard.element.querySelectorAll(conf.removeEmail_btn)) {
+            __activeCard.element.querySelector(conf.removeEmail_btn).click();
+            await new Promise(resolve => setTimeout(resolve, 150));
+            __activeCard.element.querySelectorAll(conf.removeEmail_btn).length === 0 ? resolve() : null;
         };
     });
 };
@@ -496,54 +445,205 @@ function insertNewEmails() {
         function updateInput(input) {
             let inputEvent = new Event('input', { bubbles: true });
             let kbEvent = new KeyboardEvent('keydown', { key: ',', keyCode: 188, which: 188 });
-            $(input)[0].dispatchEvent(kbEvent);
-            $(input)[0].value += ',';
-            $(input)[0].dispatchEvent(inputEvent);
+            __activeCard.element.querySelector(input).dispatchEvent(kbEvent);
+            __activeCard.element.querySelector(input).value += ',';
+            __activeCard.element.querySelector(input).dispatchEvent(inputEvent);
         };
     });
 };
-function removeDefaultEmails() {
-    return new Promise(async (resolve) => {
-        for (const emails of __activeCard.element.querySelectorAll(conf.removeEmail_btn)) {
-            __activeCard.element.querySelector(conf.removeEmail_btn).click();
-            await new Promise(resolve => setTimeout(resolve, 150));
-            __activeCard.element.querySelectorAll(conf.removeEmail_btn).length === 0 ? resolve() : null;
-        };
-    });
-};
-function insertTemplate() {
+async function newEmail() {
     return new Promise(async (resolve, reject) => {
-        if ($(conf.writeCards).length === 1) {
-            if ($('#templateEmail').val() === "ext") {
-                var signature = $(__activeCard.element.querySelector(conf.signature)).html();
-                //External template
-                var temp_data = await getExternalTemp();
-                $(__activeCard.element.querySelector(conf.emailTitle)).val(temp_data.title);
-                if ($('#templateEmail').find(':selected').attr('crCode').includes('mms')) {
-                    $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>${signature}`);
-                    resolve();
+        try {
+            if ($(conf.writeCard_btn).length) {
+                //await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
+                await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'focus', conf.writeCard_btn);
+                //await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
+                await waitForMutation(conf.createEmail, 'New_email_card', 'click', conf.newEmail_btn);
+                $(conf.writeCard_btn)[0].dispatchEvent(new Event('blur'), { bubbles: true })
+                console.log("%cCreated email", "color: green");
+                resolve();
+            }
+            else { reject("WRONG PAGE") };
+        }
+        catch (error) { reject(error) };
+    });
+};
+function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
+    return new Promise((resolve) => {
+        let findMutation = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (txt && mutation.target.innerText.includes(txt)) {
+                    if (reuse && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(mutation.target.innerText);
+                        resolve(); break;
+                    };
+                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(mutation.target.innerText);
+                        resolve(); break;
+                    };
                 }
-                else {
-                    $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>`);
-                    resolve();
+                else if (typeof txt === 'undefined') {
+                    if (reuse && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(`%cSelector ${id} has been found`, "color: orange");
+                        resolve(); break;
+                    };
+                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(`%cSelector ${id} has been found`, "color: orange");
+                        resolve(); break;
+                    };
                 };
+            };
+        });
+        findMutation.observe(document, options);
+
+        var fireNSeek = setInterval(() => {
+            console.log(`%cReinitializing ${event} event`, "color: red");
+            if (event === 'click') {
+                type === 'from' && event && aim ? origin.querySelector(aim).click()
+                    : event && aim ? $(aim)[0].click() : null;
             }
             else {
-                //Non external templates
-                await waitForMutation(conf.cannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
-                console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
-                $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
-                $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
-                await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
-                $(conf.cannedDropdown)[0].click();
-                await insertedTempAlert();
-                console.log("%cCanned response was inserted", "color: green");
+                type === 'from' && event && aim ? origin.querySelector(aim).dispatchEvent(new Event(event), { bubbles: true })
+                    : event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
+            };
+        }, 500);
+    });
+};
+function rangeSetter() {
+    var $newSelection = $(__activeCard.element.querySelector(conf.emailContent));
+    var selection = window.getSelection();
+    var range = document.createRange();
+    range.setStartBefore($newSelection.first()[0]);
+    range.setEndAfter($newSelection.last()[0]);
+    selection.removeAllRanges();
+    selection.addRange(range);
+};
+async function gaiaRequestCatcher() {
+    return new Promise(resolve => window.onmessage = (request) => {
+        if (request.origin === "https://supportcases-pa-googleapis.corp.google.com") {
+            var rawData = JSON.parse(JSON.parse(request.data).a[1]).gapiRequest.data.body
+            var aureumData = JSON.parse(rawData)
+            if (Object.keys(aureumData).length === 5) { resolve(aureumData) }
+        }
+    })
+};
+function insertTemplate() {
+    return new Promise(async (resolve) => {
+        if ($('#templateEmail').val() === "ext") {
+            var signature = $(__activeCard.element.querySelector(conf.signature)).html();
+            //External template
+            var temp_data = await getExternalTemp();
+            $(__activeCard.element.querySelector(conf.emailTitle)).val(temp_data.title);
+            if ($('#templateEmail').find(':selected').attr('crCode').includes('mms')) {
+                $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>${signature}`);
+                resolve();
+            }
+            else {
+                $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>`);
                 resolve();
             };
         }
         else {
-            reject('SEVERAL EMAIL CARDS OPEN');
+            console.log({ 'ActiveElement': __activeCard.element })
+
+            //await waitForMutation(conf.paneCannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
+            await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', cannedResIcon); // true
+
+            $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
+
+            console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
+
+
+            await new Promise(resolve => setTimeout(resolve, 3500));
+            $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
+
+            $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
+            //await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
+            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
+
+
+            $('.write-cards-wrapper card').removeClass("spread")
+            $('.write-cards-wrapper[style=""] card').addClass("spread")
+
+            var rangeFixer = setInterval(rangeSetter, 1)
+            $(conf.cannedDropdown)[0].click()
+            window.gaiaBugProtector = await gaiaRequestCatcher();
+
+            await insertedTempAlert();
+            console.log("%cCanned response was inserted", "color: green");
+            //window.removeEventListener('message', gaiaRequestCatcher)
+            clearInterval(rangeFixer)
+            resolve();
         };
+    });
+};
+function autoFill() {
+    return new Promise(async (resolve) => {
+        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}/g;
+        let codexGiga = {
+            '{%^25154%}': __caseData.name, '{%^26042%}': __caseData.phone,
+            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id,
+            '{%AGENT_FIRST_NAME%}': __caseData.agent, '{%IDENTIFIER_VENDOR_PARTNER%}': 'Cognizant',
+            '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': "__caseData.task",
+            '{Agent to Update Appointment Date, Time, and Timezone}': __caseData.appointment,
+            '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
+            '{url}': __caseData.website, '{case_id}': __caseData.case_id,
+            '{agent}': __caseData.agent, '{meet}': __caseData.meet
+        };
+        let emailBody = $(__activeCard.element.querySelector(conf.emailContent));
+        let content = emailBody.html().replace(regTerms, matched => codexGiga[matched]);
+        emailBody.html(content);
+
+        if ($('#templateEmail').val() === 'ext') {
+            let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle));
+            let title = emailTitle.val().replace(regTerms, matched => codexGiga[matched]);
+            emailTitle.val(title);
+            resolve();
+        }
+        else {
+            let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google', 'solucoes tecnicas da google'];
+            //Duplicated signature remotion
+            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') ? element.parentElement.remove() : null };
+            for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null };
+            resolve();
+        };
+
+        window.gaiaBugProtector = null;
+        $('.write-cards-wrapper card').removeClass("spread");
+        $(__activeCard.element.querySelectorAll(conf.highlightedTerms)).removeClass('field');
+        __activeCard.element.querySelector(conf.createEmail).dispatchEvent(new Event('input', { bubbles: true }));
+        console.log("%cAutofilled", "color: green");
+    });
+};
+function insertedTempAlert() {
+    return new Promise(async (resolve) => {
+        var findSelection = setInterval(() => {
+            if (window.getSelection().anchorNode.closest('.write-cards-wrapper[style=""] card.is-top[card-type="compose"] #email-body-content-top')) {
+                clearInterval(findSelection);
+                var tempInserted = setInterval(async () => {
+                    if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
+                        clearTimeout(bugProtector);
+                        clearInterval(tempInserted);
+                        resolve()
+                    };
+                }, 250);
+
+                var bugProtector = setTimeout(() => {
+                    console.log(`%cConnect Cases bugged - Resseting the email insertion...`, "color: red");
+                    clearInterval(tempInserted);
+                    $(__activeCard.element.querySelector(conf.emailContent)).html(window.gaiaBugProtector.content);
+                    resolve();
+                }, 4000);
+            };
+        }, 1);
     });
 };
 function getExternalTemp() {
@@ -570,64 +670,6 @@ function getExternalTemp() {
                     });
             };
         };
-    });
-};
-function autoFill() {
-    return new Promise(async (resolve) => {
-        if ($('#templateEmail').val() === 'ext') {
-            //Logic to autofill external temps
-            let emailBody = $(__activeCard.element.querySelector(conf.emailContent));
-            let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle));
-            let replacedTerms = /\{(?:advertiser|url|case_id|phone|agent|meet)\}/g;
-            let mapTerms = {
-                '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
-                '{url}': __caseData.website, '{case_id}': __caseData.case_id,
-                '{agent}': __caseData.agent, '{meet}': __caseData.meet
-            };
-            let content = emailBody.html().replace(replacedTerms, matched => mapTerms[matched]);
-            let title = emailTitle.val().replace(replacedTerms, matched => mapTerms[matched]);
-
-            emailBody.html(content);
-            emailTitle.val(title);
-            resolve();
-        }
-        else {
-            //Logic to autofill canned temps
-            let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc });
-            let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google', 'solucoes tecnicas da google'];
-
-            if (selectedTemp.inputs.appointment) {
-                $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment);
-                $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field');
-            }
-            if (selectedTemp.inputs.name) {
-                $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name);
-                $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field');
-            }
-            if (selectedTemp.inputs.phone) {
-                $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone);
-                $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field');
-            }
-            if (selectedTemp.inputs.nothing) {
-                console.log('No fields');
-            }
-            //Duplicated signature remotion
-            for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') ? element.parentElement.remove() : null };
-            for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null };
-            resolve();
-        };
-        __activeCard.element.querySelector(createEmail).dispatchEvent(new Event('input', { bubbles: true }));
-        console.log("%cAutofilled", "color: green");
-    });
-};
-function insertedTempAlert() {
-    return new Promise((resolve) => {
-        var tempInserted = setInterval(() => {
-            if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
-                clearInterval(tempInserted);
-                resolve();
-            };
-        }, 200);
     });
 };
 function showSuccess() {
@@ -714,6 +756,8 @@ function getCalendarID() {
         try {
             var waitForUsers = setInterval(() => {
                 if (window.__userData !== undefined && __userData.length) {
+                    console.log("__userData Found")
+                    console.log(__userData)
                     clearInterval(waitForUsers);
                     for (const user_data of window.__userData) {
                         let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
@@ -726,7 +770,7 @@ function getCalendarID() {
                         };
                     };
                 };
-            }, 100);
+            }, 500);
         }
         catch (err) { console.log(err) };
     });
@@ -847,7 +891,6 @@ async function errorClosure(msg) {
 
     var modalLoaded = setInterval(() => {
         if ($('#resch_time').length) {
-            //MODAL 2 CONFIG
             clearInterval(modalLoaded);
             timePickerConfig();
             $(function () { $("#resch_date").datepicker(dateConfig) });
