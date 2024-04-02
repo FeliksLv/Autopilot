@@ -17,9 +17,11 @@ const conf = {
     signature: '#email-body-content-top-content > .replaced:last-child',
     cannedInput: 'canned-response-dialog input',
     cannedDropdown: '.pane.selections.visible material-select-dropdown-item[aria-selected="false"] span',
-    createEmail: '[aria-label="Email body"]'
+    createEmail: '[aria-label="Email body"]',
+    paneCannedInput: '.pane.modal.visible dynamic-component'
 };
 
+//Appscript Dependencies
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar };
 function qaData(emailData) { return window.__qaData = emailData };
 function userData(users) { return window.__userData = users };
@@ -229,8 +231,6 @@ function getAgentData() {
         };
     });
 };
-///window.dropdownEmails222 = '.pane.material-dropdown-select-popup [aria-activedescendant*="email-address-id"]';
-//Creates __caseData responsible for save all data of the current active case 
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -347,76 +347,6 @@ function bulkBifrost() {
         catch (error) { reject(error) };
     });
 };
-
-function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
-    return new Promise((resolve, reject) => {
-        let findMutation = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                if (txt && mutation.target.innerText.includes(txt)) {
-                    console.log(`%cText Found`, "color: orange");
-                    if (reuse && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(mutation.target.innerText);
-                        resolve(); break;
-                    };
-                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(mutation.target.innerText);
-                        resolve(); break;
-                    };
-                }
-                else if (typeof txt === 'undefined') {
-                    if (reuse && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(`%cSelector ${id} has been found`, "color: orange");
-                        resolve(); break;
-                    };
-                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
-                        clearInterval(interval);
-                        findMutation.disconnect();
-                        console.log(`%cSelector ${id} has been found`, "color: orange");
-                        resolve(); break;
-                    };
-                };
-            };
-        });
-        findMutation.observe(document, options);
-
-        var interval = setInterval(() => {
-            console.log(`%cReinitializing ${event} event`, "color: red");
-            if (event === 'click') {
-                type === 'from' && event && aim ? origin.querySelector(aim).click()
-                    : type === 'sel' && event && aim ? $(aim)[0].click() : null;
-            }
-            else {
-                type === 'from' && event && aim ? origin.querySelector(aim).dispatchEvent(new Event(event), { bubbles: true })
-                    : type === 'sel' && event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
-                // : !event && !aim ? null
-            };
-        }, 1000);
-
-        console.log(origin);
-        console.log(aim);
-        origin ? console.log(origin.querySelector(aim)) : console.log($(aim)[0]);
-    });
-};
-async function newEmail() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if ($(conf.writeCard_btn).length) {
-                await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
-                await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
-                console.log("%cCreated email", "color: green");
-                resolve();
-            }
-            else { reject("WRONG PAGE") };
-        }
-        catch (error) { reject(error) };
-    });
-};
 async function getActiveCard() {
     return new Promise(async (resolve, reject) => {
         //Delay to prevent style changes
@@ -437,6 +367,7 @@ async function getActiveCard() {
         reject("EMAIL CARD NOT FOUND");
     });
 };
+
 async function updateAdresses() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -455,6 +386,15 @@ async function updateAdresses() {
         catch (err) {
             console.log(err);
             reject("ERROR UPDATING ADRESSES");
+        };
+    });
+};
+function removeDefaultEmails() {
+    return new Promise(async (resolve) => {
+        for (const emails of __activeCard.element.querySelectorAll(conf.removeEmail_btn)) {
+            __activeCard.element.querySelector(conf.removeEmail_btn).click();
+            await new Promise(resolve => setTimeout(resolve, 150));
+            __activeCard.element.querySelectorAll(conf.removeEmail_btn).length === 0 ? resolve() : null;
         };
     });
 };
@@ -495,79 +435,142 @@ function insertNewEmails() {
         function updateInput(input) {
             let inputEvent = new Event('input', { bubbles: true });
             let kbEvent = new KeyboardEvent('keydown', { key: ',', keyCode: 188, which: 188 });
-            $(input)[0].dispatchEvent(kbEvent);
-            $(input)[0].value += ',';
-            $(input)[0].dispatchEvent(inputEvent);
+            __activeCard.element.querySelector(input).dispatchEvent(kbEvent);
+            __activeCard.element.querySelector(input).value += ',';
+            __activeCard.element.querySelector(input).dispatchEvent(inputEvent);
         };
     });
 };
-function removeDefaultEmails() {
-    return new Promise(async (resolve) => {
-        for (const emails of __activeCard.element.querySelectorAll(conf.removeEmail_btn)) {
-            __activeCard.element.querySelector(conf.removeEmail_btn).click();
-            await new Promise(resolve => setTimeout(resolve, 150));
-            __activeCard.element.querySelectorAll(conf.removeEmail_btn).length === 0 ? resolve() : null;
-        };
-    });
-};
-function insertTemplate() {
+async function newEmail() {
     return new Promise(async (resolve, reject) => {
-        if ($(conf.writeCards).length === 1) {
-            if ($('#templateEmail').val() === "ext") {
-                var signature = $(__activeCard.element.querySelector(conf.signature)).html();
-                //External template
-                var temp_data = await getExternalTemp();
-                $(__activeCard.element.querySelector(conf.emailTitle)).val(temp_data.title);
-                if ($('#templateEmail').find(':selected').attr('crCode').includes('mms')) {
-                    $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>${signature}`);
-                    resolve();
+        try {
+            if ($(conf.writeCard_btn).length) {
+                await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
+                await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
+                $(conf.writeCard_btn)[0].dispatchEvent(new Event('blur'), { bubbles: true })
+                console.log("%cCreated email", "color: green");
+                resolve();
+            }
+            else { reject("WRONG PAGE") };
+        }
+        catch (error) { reject(error) };
+    });
+};
+function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
+    return new Promise((resolve, reject) => {
+        let findMutation = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (txt && mutation.target.innerText.includes(txt)) {
+                    if (reuse && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(mutation.target.innerText);
+                        resolve(); break;
+                    };
+                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(mutation.target.innerText);
+                        resolve(); break;
+                    };
                 }
-                else {
-                    $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>`);
-                    resolve();
+                else if (typeof txt === 'undefined') {
+                    if (reuse && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(`%cSelector ${id} has been found`, "color: orange");
+                        resolve(); break;
+                    };
+                    if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
+                        clearInterval(fireNSeek);
+                        findMutation.disconnect();
+                        console.log(`%cSelector ${id} has been found`, "color: orange");
+                        resolve(); break;
+                    };
                 };
+            };
+        });
+        findMutation.observe(document, options);
+
+        var fireNSeek = setInterval(() => {
+            console.log(`%cReinitializing ${event} event`, "color: red");
+            if (event === 'click') {
+                type === 'from' && event && aim ? origin.querySelector(aim).click()
+                    : type === 'sel' && event && aim ? $(aim)[0].click() : null;
             }
             else {
-                //Non external templates
-                await waitForMutation(conf.cannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
-                console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
-                $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
-                $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
-                await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
-                $(conf.cannedDropdown)[0].click();
-                await insertedTempAlert();
-                console.log("%cCanned response was inserted", "color: green");
+                type === 'from' && event && aim ? origin.querySelector(aim).dispatchEvent(new Event(event), { bubbles: true })
+                    : type === 'sel' && event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
+                // : !event && !aim ? null
+            };
+        }, 500);
+    });
+};
+function rangeSetter() {
+    var $newSelection = $(__activeCard.element.querySelector(conf.emailContent));
+    var selection = window.getSelection();
+    var range = document.createRange();
+    range.setStartBefore($newSelection.first()[0]);
+    range.setEndAfter($newSelection.last()[0]);
+    selection.removeAllRanges();
+    selection.addRange(range);
+};
+async function gaiaRequestCatcher() {
+    return new Promise(resolve => window.onmessage = (request) => {
+        if (request.origin === "https://supportcases-pa-googleapis.corp.google.com") {
+            var rawData = JSON.parse(JSON.parse(request.data).a[1]).gapiRequest.data.body
+            var aureumData = JSON.parse(rawData)
+            if (Object.keys(aureumData).length === 5) { resolve(aureumData) }
+        }
+    })
+};
+
+//window.cannedInput1 = '.pane.modal.visible dynamic-component';
+function insertTemplate() {
+    return new Promise(async (resolve, reject) => {
+        // if ($(conf.writeCards).length === 1) {
+        if ($('#templateEmail').val() === "ext") {
+            var signature = $(__activeCard.element.querySelector(conf.signature)).html();
+            //External template
+            var temp_data = await getExternalTemp();
+            $(__activeCard.element.querySelector(conf.emailTitle)).val(temp_data.title);
+            if ($('#templateEmail').find(':selected').attr('crCode').includes('mms')) {
+                $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>${signature}`);
+                resolve();
+            }
+            else {
+                $(__activeCard.element.querySelector(conf.emailContent)).html(`${temp_data.content}<br/>`);
                 resolve();
             };
         }
         else {
-            reject('SEVERAL EMAIL CARDS OPEN');
-        };
-    });
-};
-function getExternalTemp() {
-    return new Promise((resolve) => {
-        //var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
-        var ext_files = [
-            { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
-            { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
-            { temp: 'ext 3/9_es', file: 'day3_es.html', title: '[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
-            { temp: 'ext 3/9_pt', file: 'day3_pt.html', title: '[DIA 3 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
-            { temp: 'ext 6/9_es', file: 'day6_es.html', title: '[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
-            { temp: 'ext 6/9_pt', file: 'day6_pt.html', title: '[DIA 6 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
-            { temp: 'ext mms_es', file: 'mms_es.html', title: '[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web' },
-            { temp: 'ext mms_pt', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
-        ];
-        for (const item of ext_files) {
-            if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
-                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
-                    .then(response => {
-                        if (!response.ok) { reject('CDN ERROR') }
-                        else { return response.text() };
-                    }).then(temp => {
-                        resolve({ content: `${temp}`, title: item.title });
-                    });
-            };
+            console.log({ 'ActiveElement': __activeCard.element })
+
+            await waitForMutation(conf.paneCannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
+            $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
+
+            console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
+
+
+            await new Promise(resolve => setTimeout(resolve, 3500));
+            $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
+
+            $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
+            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
+
+            $('.write-cards-wrapper card').removeClass("spread")
+            $('.write-cards-wrapper[style=""] card').addClass("spread")
+
+            var rangeFixer = setInterval(rangeSetter, 1)
+
+            $(conf.cannedDropdown)[0].click()
+            window.gaiaBugProtector = await gaiaRequestCatcher();
+
+            await insertedTempAlert();
+            console.log("%cCanned response was inserted", "color: green");
+            //window.removeEventListener('message', gaiaRequestCatcher)
+            clearInterval(rangeFixer)
+            resolve();
         };
     });
 };
@@ -616,17 +619,60 @@ function autoFill() {
             resolve();
         };
         __activeCard.element.querySelector(conf.createEmail).dispatchEvent(new Event('input', { bubbles: true }));
+        $('.write-cards-wrapper card').removeClass("spread")
+        window.gaiaBugProtector = null
         console.log("%cAutofilled", "color: green");
     });
 };
 function insertedTempAlert() {
-    return new Promise((resolve) => {
-        var tempInserted = setInterval(() => {
-            if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
-                clearInterval(tempInserted);
-                resolve();
+    return new Promise(async (resolve) => {
+        var findSelection = setInterval(() => {
+            console.log($('.write-cards-wrapper[style=""] card.is-top[card-type="compose"]'));
+            if (window.getSelection().anchorNode.closest('.write-cards-wrapper[style=""] card.is-top[card-type="compose"] #email-body-content-top')) {
+                clearInterval(findSelection);
+                var tempInserted = setInterval(async () => {
+                    if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
+                        clearTimeout(bugProtector);
+                        clearInterval(tempInserted);
+                        resolve()
+                    };
+                }, 250);
+
+                var bugProtector = setTimeout(() => {
+                    console.log(`%cConnect Cases bugged - Resseting the email insertion...`, "color: red");
+                    clearInterval(tempInserted);
+                    console.log(window.gaiaBugProtector);
+                    $(__activeCard.element.querySelector(conf.emailContent)).html(window.gaiaBugProtector.content);
+                    resolve();
+                }, 5000);
             };
-        }, 200);
+        }, 1);
+    });
+};
+function getExternalTemp() {
+    return new Promise((resolve) => {
+        //var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
+        var ext_files = [
+            { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
+            { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
+            { temp: 'ext 3/9_es', file: 'day3_es.html', title: '[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
+            { temp: 'ext 3/9_pt', file: 'day3_pt.html', title: '[DIA 3 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
+            { temp: 'ext 6/9_es', file: 'day6_es.html', title: '[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
+            { temp: 'ext 6/9_pt', file: 'day6_pt.html', title: '[DIA 6 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
+            { temp: 'ext mms_es', file: 'mms_es.html', title: '[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web' },
+            { temp: 'ext mms_pt', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
+        ];
+        for (const item of ext_files) {
+            if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
+                fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
+                    .then(response => {
+                        if (!response.ok) { reject('CDN ERROR') }
+                        else { return response.text() };
+                    }).then(temp => {
+                        resolve({ content: `${temp}`, title: item.title });
+                    });
+            };
+        };
     });
 };
 function showSuccess() {
@@ -713,6 +759,8 @@ function getCalendarID() {
         try {
             var waitForUsers = setInterval(() => {
                 if (window.__userData !== undefined && __userData.length) {
+                    console.log("__userData Found")
+                    console.log(__userData)
                     clearInterval(waitForUsers);
                     for (const user_data of window.__userData) {
                         let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
@@ -885,3 +933,115 @@ async function errorClosure(msg) {
         };
     }, 100);
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const bubbleEventClick = new Event('click', { bubbles: true });
+const bubbleEventFocus = new Event('focus', { bubbles: true });
+const bubbleEventBlur = new Event('blur', { bubbles: true });
+const bubbleEventInput = new Event('input', { bubbles: true });
+
+const createEmail = (hotkeyString) => {
+    // Configura as opções para observar mudanças no documento inteiro
+    const opcoes = { childList: true, subtree: true, attributes: true, characterData: true };
+    const elements = [];
+    const createEmail = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type !== 'characterData' && mutation.target.closest(createEmail)) {
+                elements.push(mutation.target);
+                console.log('Created Email')
+                createEmail.disconnect();
+                return;
+            }
+        }
+    });
+
+    const functionCreateEmail = () => {
+        const buttonCreateCard = document.querySelector('[aria-label="Create a write card"]');
+        buttonCreateCard.dispatchEvent(bubbleEventFocus);
+        var emailButton = setInterval(() => {
+            if (document.querySelector('[aria-label="Create new email"]') !== null) {
+                clearInterval(emailButton)
+                const buttonCreateEmail = document.querySelector('[aria-label="Create new email"]');
+                buttonCreateEmail.dispatchEvent(bubbleEventClick);
+                buttonCreateCard.dispatchEvent(bubbleEventBlur);
+                createEmail.observe(document, opcoes);
+                var mutationSeeker = setInterval(() => {
+                    console.log('Interval Started')
+                    if (elements.length > 0) {
+                        clearInterval(mutationSeeker)
+
+                        console.log('Elementos', elements[0]);
+                        const contentTop = elements[0].querySelector('#email-body-content-top',);
+                        document.querySelector('[aria-label="Insert canned response"]').click();
+                        var inputSeeker = setInterval(() => {
+                            if (document.querySelector('canned-response-dialog input') !== null) {
+                                clearInterval(inputSeeker)
+                                const inputCR = document.querySelector('canned-response-dialog input');
+                                console.log(elements);
+                                contentTop.innerText = '';
+                                inputCR.value = hotkeyString;
+                                inputCR.dispatchEvent(bubbleEventInput);
+                                elements.length = 0;
+                                console.log(document.activeElement)
+                                const clickHotKey = new MutationObserver((mutations) => {
+                                    for (const mutation of mutations) {
+                                        console.log(mutation)
+                                        if (mutation.target && mutation.target.innerText.includes('1 match')) {
+                                            mutation.target.querySelector('material-select-dropdown-item').dispatchEvent(bubbleEventClick);
+                                            clickHotKey.disconnect();
+                                            return;
+                                        }
+                                    }
+                                })
+                                clickHotKey.observe(document, opcoes);
+                                console.log('acabou')
+                                return;
+                            }
+                        }, 100)
+
+
+                    }
+                }, 100)
+            }
+        }, 100)
+
+    };
+    functionCreateEmail(hotkeyString);
+}
