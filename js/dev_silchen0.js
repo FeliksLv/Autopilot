@@ -468,7 +468,7 @@ async function newEmail() {
         catch (error) { reject(error) };
     });
 };
-function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
+function waitForMutation(el, id, event, aim, origin, type, reuse = true, txt) {
     return new Promise((resolve) => {
         let findMutation = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
