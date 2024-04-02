@@ -20,8 +20,9 @@ const conf = {
     createEmail: '[aria-label="Email body"]',
     paneCannedInput: '.pane.modal.visible dynamic-component',
     highlightedTerms: '#email-body-content-top-content span.field',
+    cannedResIcon: '[aria-label="Insert canned response"]',
+    ccEmail: '[aria-label="Enter Cc email address"]'
 };
-
 //Appscript Dependencies
 function Bifrost(myCalendar) { return window.__Bifrost = myCalendar };
 function qaData(emailData) { return window.__qaData = emailData };
@@ -219,7 +220,8 @@ function getActiveTab() {
 function getAgentData() {
     return new Promise(async (resolve) => {
         if (localStorage.getItem('ca_agent') === null) {
-            await waitForMutation('profile-details', 'agent_data', 'sel', ...[,], 'click', $(conf.agentInfo)[0], ...[,]); // true 🎈🎈
+            //await waitForMutation('profile-details', 'agent_data', 'sel', ...[,], 'click', $(conf.agentInfo)[0], ...[,]); // true 🎈🎈
+            await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
             localStorage.setItem('ca_agent', JSON.stringify({
                 agent: $('profile-details .name').text().split(' ')[0],
                 ldap: JSON.parse(window.clientContext).userEmail
@@ -240,7 +242,8 @@ function bulkBifrost() {
             $(conf.caseLog_btn)[0].click();
             var bulkData = { ...agent_data, activeCase: $('[data-case-id]').attr('data-case-id') };
 
-            await waitForMutation('div.open', 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div > div', ...[,], false);
+            //await waitForMutation('div.open', 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div > div', ...[,], false);
+            await waitForMutation('div.open', 'extra_information', 'click', 'div > div > div', $(conf.logMessages)[0], 'from', false);
             switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
                 case 'Submitted via Greentea Transfer': __activeCard.category = 'Greentea Transfer'; break;
                 case 'Submitted via Help Center Direct to Form':
@@ -254,7 +257,8 @@ function bulkBifrost() {
 
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
-                    await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', 'An appointment has been successfully created', false);
+                    //await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', 'successfully created', false);
+                    await waitForMutation(conf.logMessageContent, 'extra_information', 'click', 'div > div > div', message, 'from', false, 'successfully created');
                     var region = /(?<=\[)(.*?)(?=\])/;
                     var richContent = $(message.querySelector(conf.logMessageContent)).text();
                     //Get Name only returns DEFAULT on tabs other than a case tab
@@ -264,7 +268,9 @@ function bulkBifrost() {
                 }
                 //Extra informations to Non DFA cases
                 else if ($(message).html().includes('Review case in Connect Sales') && __activeCard.category === 'Greentea Transfer') {
-                    await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', ...[,], false);
+                    //await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', ...[,], false);
+                    await waitForMutation(conf.logMessageContent, 'extra_information', 'click', 'div > div > div', message, 'from', false);
+
                     let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim();
                     bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() };
                     for (const data of $('.message-body.message-body1 tbody > tr')) {
@@ -279,7 +285,9 @@ function bulkBifrost() {
                     /*$(conf.logMessages)[0].querySelector('div > div').click()
                     await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0]);
                     */
-                    await waitForMutation(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div', ...[,], false);
+
+                    // await waitForMutation(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div', ...[,], false);
+                    await waitForMutation(conf.logDfaContent, 'extra_information', 'click', 'div > div', $(conf.logMessages)[0], 'from', false);
                     bulkData.website = [...$(conf.logMessages)[0].querySelectorAll('a')].reduce((acc, url) => { return (reg.test(url.innerHTML) ? url.innerHTML : acc) }, "DEFAULT_URL");
                 };
             };
@@ -368,15 +376,16 @@ async function getActiveCard() {
         reject("EMAIL CARD NOT FOUND");
     });
 };
-
 async function updateAdresses() {
     return new Promise(async (resolve, reject) => {
         try {
-            await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'from', __activeCard.element, 'click', '.address[buttoncontent]', ...[,]);
+            //await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'from', __activeCard.element, 'click', '.address[buttoncontent]', ...[,]);
+            await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'click', '.address[buttoncontent]', __activeCard.element, 'from');
+
             //Change to: technical-solutions@google.com
             [...$(`${conf.dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null });
             //Update the attendees
-            __activeCard.element.querySelector(conf.showCC_btn) ? await waitForMutation('[aria-label="Enter Cc email address"]', 'emailAdresses', 'from', __activeCard.element, 'click', conf.showCC_btn, ...[,]) : null;
+            __activeCard.element.querySelector(conf.showCC_btn) ? await waitForMutation(conf.ccEmail, 'emailAdresses', 'click', conf.showCC_btn, __activeCard.element, 'from') : null;
             //Remove default emails
             await removeDefaultEmails();
             //Update all calendar attendees including the seller
@@ -446,8 +455,10 @@ async function newEmail() {
     return new Promise(async (resolve, reject) => {
         try {
             if ($(conf.writeCard_btn).length) {
-                await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
-                await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
+                //await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
+                await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'focus', conf.writeCard_btn);
+                //await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
+                await waitForMutation(conf.createEmail, 'New_email_card', 'click', conf.newEmail_btn);
                 $(conf.writeCard_btn)[0].dispatchEvent(new Event('blur'), { bubbles: true })
                 console.log("%cCreated email", "color: green");
                 resolve();
@@ -458,7 +469,7 @@ async function newEmail() {
     });
 };
 function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         let findMutation = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (txt && mutation.target.innerText.includes(txt)) {
@@ -497,12 +508,11 @@ function waitForMutation(el, id, type, origin, event, aim, txt, reuse = true) {
             console.log(`%cReinitializing ${event} event`, "color: red");
             if (event === 'click') {
                 type === 'from' && event && aim ? origin.querySelector(aim).click()
-                    : type === 'sel' && event && aim ? $(aim)[0].click() : null;
+                    : event && aim ? $(aim)[0].click() : null;
             }
             else {
                 type === 'from' && event && aim ? origin.querySelector(aim).dispatchEvent(new Event(event), { bubbles: true })
-                    : type === 'sel' && event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
-                // : !event && !aim ? null
+                    : event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
             };
         }, 500);
     });
@@ -526,8 +536,7 @@ async function gaiaRequestCatcher() {
     })
 };
 function insertTemplate() {
-    return new Promise(async (resolve, reject) => {
-        // if ($(conf.writeCards).length === 1) {
+    return new Promise(async (resolve) => {
         if ($('#templateEmail').val() === "ext") {
             var signature = $(__activeCard.element.querySelector(conf.signature)).html();
             //External template
@@ -545,7 +554,9 @@ function insertTemplate() {
         else {
             console.log({ 'ActiveElement': __activeCard.element })
 
-            await waitForMutation(conf.paneCannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
+            //await waitForMutation(conf.paneCannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
+            await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', cannedResIcon); // true
+
             $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
 
             console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
@@ -555,13 +566,14 @@ function insertTemplate() {
             $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
 
             $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
-            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
+            //await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
+            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
+
 
             $('.write-cards-wrapper card').removeClass("spread")
             $('.write-cards-wrapper[style=""] card').addClass("spread")
 
             var rangeFixer = setInterval(rangeSetter, 1)
-
             $(conf.cannedDropdown)[0].click()
             window.gaiaBugProtector = await gaiaRequestCatcher();
 
@@ -593,18 +605,14 @@ function autoFill() {
         if ($('#templateEmail').val() === 'ext') {
             let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle));
             let title = emailTitle.val().replace(regTerms, matched => codexGiga[matched]);
-            //emailBody.html(content);
             emailTitle.val(title);
             resolve();
         }
         else {
-            //Logic to autofill canned temps
-            let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc });
             let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google', 'solucoes tecnicas da google'];
             //Duplicated signature remotion
             for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') ? element.parentElement.remove() : null };
             for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null };
-           // emailBody.html(content);
             resolve();
         };
 
@@ -633,7 +641,7 @@ function insertedTempAlert() {
                     clearInterval(tempInserted);
                     $(__activeCard.element.querySelector(conf.emailContent)).html(window.gaiaBugProtector.content);
                     resolve();
-                }, 5000);
+                }, 4000);
             };
         }, 1);
     });
@@ -762,7 +770,7 @@ function getCalendarID() {
                         };
                     };
                 };
-            }, 100);
+            }, 500);
         }
         catch (err) { console.log(err) };
     });
@@ -883,7 +891,6 @@ async function errorClosure(msg) {
 
     var modalLoaded = setInterval(() => {
         if ($('#resch_time').length) {
-            //MODAL 2 CONFIG
             clearInterval(modalLoaded);
             timePickerConfig();
             $(function () { $("#resch_date").datepicker(dateConfig) });
