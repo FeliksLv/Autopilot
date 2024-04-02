@@ -18,7 +18,8 @@ const conf = {
     cannedInput: 'canned-response-dialog input',
     cannedDropdown: '.pane.selections.visible material-select-dropdown-item[aria-selected="false"] span',
     createEmail: '[aria-label="Email body"]',
-    paneCannedInput: '.pane.modal.visible dynamic-component'
+    paneCannedInput: '.pane.modal.visible dynamic-component',
+    highlightedTerms: '#email-body-content-top-content span.field',
 };
 
 //Appscript Dependencies
@@ -524,8 +525,6 @@ async function gaiaRequestCatcher() {
         }
     })
 };
-
-//window.cannedInput1 = '.pane.modal.visible dynamic-component';
 function insertTemplate() {
     return new Promise(async (resolve, reject) => {
         // if ($(conf.writeCards).length === 1) {
@@ -576,20 +575,25 @@ function insertTemplate() {
 };
 function autoFill() {
     return new Promise(async (resolve) => {
-        if ($('#templateEmail').val() === 'ext') {
-            //Logic to autofill external temps
-            let emailBody = $(__activeCard.element.querySelector(conf.emailContent));
-            let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle));
-            let replacedTerms = /\{(?:advertiser|url|case_id|phone|agent|meet)\}/g;
-            let mapTerms = {
-                '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
-                '{url}': __caseData.website, '{case_id}': __caseData.case_id,
-                '{agent}': __caseData.agent, '{meet}': __caseData.meet
-            };
-            let content = emailBody.html().replace(replacedTerms, matched => mapTerms[matched]);
-            let title = emailTitle.val().replace(replacedTerms, matched => mapTerms[matched]);
+        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}/g;
+        let codexGiga = {
+            '{%^25154%}': __caseData.name, '{%^26042%}': __caseData.phone,
+            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id,
+            '{%AGENT_FIRST_NAME%}': __caseData.agent, '{%IDENTIFIER_VENDOR_PARTNER%}': 'Cognizant',
+            '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': "__caseData.task",
+            '{Agent to Update Appointment Date, Time, and Timezone}': __caseData.appointment,
+            '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
+            '{url}': __caseData.website, '{case_id}': __caseData.case_id,
+            '{agent}': __caseData.agent, '{meet}': __caseData.meet
+        };
+        let emailBody = $(__activeCard.element.querySelector(conf.emailContent));
+        let content = emailBody.html().replace(regTerms, matched => codexGiga[matched]);
+        emailBody.html(content);
 
-            emailBody.html(content);
+        if ($('#templateEmail').val() === 'ext') {
+            let emailTitle = $(__activeCard.element.querySelector(conf.emailTitle));
+            let title = emailTitle.val().replace(regTerms, matched => codexGiga[matched]);
+            //emailBody.html(content);
             emailTitle.val(title);
             resolve();
         }
@@ -597,37 +601,23 @@ function autoFill() {
             //Logic to autofill canned temps
             let selectedTemp = __qaData.reduce((acc, e) => { return e.crCode === __activeCard.selectedTemp ? e : acc });
             let dupMessages = ['solucoes tecnicas do google', 'soluciones tecnicas de google', 'solucoes tecnicas da google'];
-
-            if (selectedTemp.inputs.appointment) {
-                $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).html(__caseData.appointment);
-                $(__activeCard.element.querySelector(selectedTemp.inputs.appointment)).removeClass('field');
-            }
-            if (selectedTemp.inputs.name) {
-                $(__activeCard.element.querySelector(selectedTemp.inputs.name)).html(__caseData.name);
-                $(__activeCard.element.querySelector(selectedTemp.inputs.name)).removeClass('field');
-            }
-            if (selectedTemp.inputs.phone) {
-                $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).html(__caseData.phone);
-                $(__activeCard.element.querySelector(selectedTemp.inputs.phone)).removeClass('field');
-            }
-            if (selectedTemp.inputs.nothing) {
-                console.log('No fields');
-            }
             //Duplicated signature remotion
             for (element of __activeCard.element.querySelectorAll('tr span')) { ($(element).text().includes('{%neo.vendor_partner%}') || $(element).text() === 'Cognizant') ? element.parentElement.remove() : null };
             for (element of __activeCard.element.querySelectorAll('tr > td')) { dupMessages.some(e => element.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === e) ? element.remove() : null };
+           // emailBody.html(content);
             resolve();
         };
+
+        window.gaiaBugProtector = null;
+        $('.write-cards-wrapper card').removeClass("spread");
+        $(__activeCard.element.querySelectorAll(conf.highlightedTerms)).removeClass('field');
         __activeCard.element.querySelector(conf.createEmail).dispatchEvent(new Event('input', { bubbles: true }));
-        $('.write-cards-wrapper card').removeClass("spread")
-        window.gaiaBugProtector = null
         console.log("%cAutofilled", "color: green");
     });
 };
 function insertedTempAlert() {
     return new Promise(async (resolve) => {
         var findSelection = setInterval(() => {
-            console.log($('.write-cards-wrapper[style=""] card.is-top[card-type="compose"]'));
             if (window.getSelection().anchorNode.closest('.write-cards-wrapper[style=""] card.is-top[card-type="compose"] #email-body-content-top')) {
                 clearInterval(findSelection);
                 var tempInserted = setInterval(async () => {
@@ -641,7 +631,6 @@ function insertedTempAlert() {
                 var bugProtector = setTimeout(() => {
                     console.log(`%cConnect Cases bugged - Resseting the email insertion...`, "color: red");
                     clearInterval(tempInserted);
-                    console.log(window.gaiaBugProtector);
                     $(__activeCard.element.querySelector(conf.emailContent)).html(window.gaiaBugProtector.content);
                     resolve();
                 }, 5000);
@@ -933,115 +922,3 @@ async function errorClosure(msg) {
         };
     }, 100);
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const bubbleEventClick = new Event('click', { bubbles: true });
-const bubbleEventFocus = new Event('focus', { bubbles: true });
-const bubbleEventBlur = new Event('blur', { bubbles: true });
-const bubbleEventInput = new Event('input', { bubbles: true });
-
-const createEmail = (hotkeyString) => {
-    // Configura as opções para observar mudanças no documento inteiro
-    const opcoes = { childList: true, subtree: true, attributes: true, characterData: true };
-    const elements = [];
-    const createEmail = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-            if (mutation.type !== 'characterData' && mutation.target.closest(createEmail)) {
-                elements.push(mutation.target);
-                console.log('Created Email')
-                createEmail.disconnect();
-                return;
-            }
-        }
-    });
-
-    const functionCreateEmail = () => {
-        const buttonCreateCard = document.querySelector('[aria-label="Create a write card"]');
-        buttonCreateCard.dispatchEvent(bubbleEventFocus);
-        var emailButton = setInterval(() => {
-            if (document.querySelector('[aria-label="Create new email"]') !== null) {
-                clearInterval(emailButton)
-                const buttonCreateEmail = document.querySelector('[aria-label="Create new email"]');
-                buttonCreateEmail.dispatchEvent(bubbleEventClick);
-                buttonCreateCard.dispatchEvent(bubbleEventBlur);
-                createEmail.observe(document, opcoes);
-                var mutationSeeker = setInterval(() => {
-                    console.log('Interval Started')
-                    if (elements.length > 0) {
-                        clearInterval(mutationSeeker)
-
-                        console.log('Elementos', elements[0]);
-                        const contentTop = elements[0].querySelector('#email-body-content-top',);
-                        document.querySelector('[aria-label="Insert canned response"]').click();
-                        var inputSeeker = setInterval(() => {
-                            if (document.querySelector('canned-response-dialog input') !== null) {
-                                clearInterval(inputSeeker)
-                                const inputCR = document.querySelector('canned-response-dialog input');
-                                console.log(elements);
-                                contentTop.innerText = '';
-                                inputCR.value = hotkeyString;
-                                inputCR.dispatchEvent(bubbleEventInput);
-                                elements.length = 0;
-                                console.log(document.activeElement)
-                                const clickHotKey = new MutationObserver((mutations) => {
-                                    for (const mutation of mutations) {
-                                        console.log(mutation)
-                                        if (mutation.target && mutation.target.innerText.includes('1 match')) {
-                                            mutation.target.querySelector('material-select-dropdown-item').dispatchEvent(bubbleEventClick);
-                                            clickHotKey.disconnect();
-                                            return;
-                                        }
-                                    }
-                                })
-                                clickHotKey.observe(document, opcoes);
-                                console.log('acabou')
-                                return;
-                            }
-                        }, 100)
-
-
-                    }
-                }, 100)
-            }
-        }, 100)
-
-    };
-    functionCreateEmail(hotkeyString);
-}
