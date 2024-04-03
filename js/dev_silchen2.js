@@ -546,7 +546,7 @@ function insertTemplate() {
 
             console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
 
-            await new Promise(resolve => setTimeout(resolve, 3500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
             $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
             await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
@@ -758,7 +758,7 @@ function getCalendarID() {
 function dependenciesChecker() {
     return new Promise((resolve) => {
         var interval = setInterval(() => {
-            if (__Bifrost && __qaData && __userData) {
+            if (window.__Bifrost && window.__qaData && window.__userData) {
                 console.log("%cAll Dependencies were loaded", "color: green");
                 clearInterval(interval)
                 resolve()
