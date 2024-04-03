@@ -1,0 +1,54 @@
+{
+   "ext_data":[
+      {
+         "temp":"ext attempt_es",
+         "file":"attemptContact_es.html",
+         "title":"Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar"
+      },
+      {
+         "temp":"ext attempt_pt",
+         "file":"attemptContact_pt.html",
+         "title":"Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato"
+      },
+      {
+         "temp":"ext 3/9_es",
+         "file":"day3_es.html",
+         "title":"[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]"
+      },
+      {
+         "temp":"ext 3/9_pt",
+         "file":"day3_pt.html",
+         "title":"[DIA 3 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]"
+      },
+      {
+         "temp":"ext 6/9_es",
+         "file":"day6_es.html",
+         "title":"[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]"
+      },
+      {
+         "temp":"ext 6/9_pt",
+         "file":"day6_pt.html",
+         "title":"[DIA 6 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]"
+      },
+      {
+         "temp":"ext mms_es",
+         "file":"mms_es.html",
+         "title":"[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web"
+      },
+      {
+         "temp":"ext mms_pt",
+         "file":"mms_pt.html",
+         "title":"[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site"
+      },
+      {
+         "temp":"ext resch2_es",
+         "file":"resch2_es.html",
+         "title":"Implementación con el Equipo de Soluciones Técnicas de Google - Cambio de Reserva de Caso"
+      },
+      {
+         "temp":"ext resch2_pt",
+         "file":"resch2_pt.html",
+         "title":"Implementação com o Time de Soluções Técnicas do Google - Remarcação do Caso"
+      }
+   ]
+}
