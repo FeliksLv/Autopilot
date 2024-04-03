@@ -220,7 +220,6 @@ function getActiveTab() {
 function getAgentData() {
     return new Promise(async (resolve) => {
         if (localStorage.getItem('ca_agent') === null) {
-            //await waitForMutation('profile-details', 'agent_data', 'sel', ...[,], 'click', $(conf.agentInfo)[0], ...[,]); // true 🎈🎈
             await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
             localStorage.setItem('ca_agent', JSON.stringify({
                 agent: $('profile-details .name').text().split(' ')[0],
@@ -242,7 +241,6 @@ function bulkBifrost() {
             $(conf.caseLog_btn)[0].click();
             var bulkData = { ...agent_data, activeCase: $('[data-case-id]').attr('data-case-id') };
 
-            //await waitForMutation('div.open', 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div > div', ...[,], false);
             await waitForMutation('div.open', 'extra_information', 'click', 'div > div > div', $(conf.logMessages)[0], 'from', false);
             switch ($(conf.logMessages)[0].querySelector('[debugid="sourceRow"] > span:last-child').innerText) {
                 case 'Submitted via Greentea Transfer': __activeCard.category = 'Greentea Transfer'; break;
@@ -257,7 +255,6 @@ function bulkBifrost() {
 
             for (const message of $(conf.logMessages)) {
                 if ($(message).html().includes('An appointment has been successfully created')) {
-                    //await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', 'successfully created', false);
                     await waitForMutation(conf.logMessageContent, 'extra_information', 'click', 'div > div > div', message, 'from', false, 'successfully created');
                     var region = /(?<=\[)(.*?)(?=\])/;
                     var richContent = $(message.querySelector(conf.logMessageContent)).text();
@@ -268,7 +265,6 @@ function bulkBifrost() {
                 }
                 //Extra informations to Non DFA cases
                 else if ($(message).html().includes('Review case in Connect Sales') && __activeCard.category === 'Greentea Transfer') {
-                    //await waitForMutation(conf.logMessageContent, 'extra_information', 'from', message, 'click', 'div > div > div', ...[,], false);
                     await waitForMutation(conf.logMessageContent, 'extra_information', 'click', 'div > div > div', message, 'from', false);
 
                     let sellerInfo = message.querySelectorAll('.message-body1 [href*="connect.corp.google.com" ]')[1].parentElement.innerText.match(/(?<=by )(.*)(?= and)/)[0].trim();
@@ -282,16 +278,11 @@ function bulkBifrost() {
                 //Extra informations to DFA cases
                 else if (__activeCard.category === 'DFA') {
                     const reg = /^[^@]*\.[^@]*$/;
-                    /*$(conf.logMessages)[0].querySelector('div > div').click()
-                    await waitForEntity(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0]);
-                    */
-
                     // await waitForMutation(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div', ...[,], false);
                     await waitForMutation(conf.logDfaContent, 'extra_information', 'click', 'div > div', $(conf.logMessages)[0], 'from', false);
                     bulkData.website = [...$(conf.logMessages)[0].querySelectorAll('a')].reduce((acc, url) => { return (reg.test(url.innerHTML) ? url.innerHTML : acc) }, "DEFAULT_URL");
                 };
             };
-
             //Case Data declaration
             if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
                 console.log('BulkData');
@@ -379,9 +370,7 @@ async function getActiveCard() {
 async function updateAdresses() {
     return new Promise(async (resolve, reject) => {
         try {
-            //await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'from', __activeCard.element, 'click', '.address[buttoncontent]', ...[,]);
             await waitForMutation(conf.dropdownEmailsContainer, 'dropdownEmails', 'click', '.address[buttoncontent]', __activeCard.element, 'from');
-
             //Change to: technical-solutions@google.com
             [...$(`${conf.dropdownEmails} > span`)].forEach(email => { $(email).text() === 'technical-solutions@google.com' ? email.click() : null });
             //Update the attendees
@@ -455,11 +444,10 @@ async function newEmail() {
     return new Promise(async (resolve, reject) => {
         try {
             if ($(conf.writeCard_btn).length) {
-                //await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'sel', ...[,], 'focus', $(conf.writeCard_btn)[0], ...[,]);
                 await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'focus', conf.writeCard_btn);
-                //await waitForMutation(conf.createEmail, 'New_email_card', 'sel', ...[,], 'click', $(conf.newEmail_btn)[0], ...[,]);
                 await waitForMutation(conf.createEmail, 'New_email_card', 'click', conf.newEmail_btn);
                 $(conf.writeCard_btn)[0].dispatchEvent(new Event('blur'), { bubbles: true })
+                console.log('Write card blurred')
                 console.log("%cCreated email", "color: green");
                 resolve();
             }
@@ -553,22 +541,15 @@ function insertTemplate() {
         }
         else {
             console.log({ 'ActiveElement': __activeCard.element })
-
-            //await waitForMutation(conf.paneCannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
-            await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', conf.cannedResIcon); // true
-
+            await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', conf.cannedResIcon);
             $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
 
             console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
 
-
             await new Promise(resolve => setTimeout(resolve, 3500));
             $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
-
             $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
-            //await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'sel', ...[,], 'input', $(conf.cannedInput)[0], ...[,]); // true 🎈🎈
             await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
-
 
             $('.write-cards-wrapper card').removeClass("spread")
             $('.write-cards-wrapper[style=""] card').addClass("spread")
@@ -576,10 +557,8 @@ function insertTemplate() {
             var rangeFixer = setInterval(rangeSetter, 1)
             $(conf.cannedDropdown)[0].click()
             window.gaiaBugProtector = await gaiaRequestCatcher();
-
             await insertedTempAlert();
             console.log("%cCanned response was inserted", "color: green");
-            //window.removeEventListener('message', gaiaRequestCatcher)
             clearInterval(rangeFixer)
             resolve();
         };
@@ -659,6 +638,7 @@ function getExternalTemp() {
             { temp: 'ext mms_es', file: 'mms_es.html', title: '[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web' },
             { temp: 'ext mms_pt', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
         ];
+
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
                 fetch(`https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/templates/${item.file}`)
@@ -775,6 +755,17 @@ function getCalendarID() {
         catch (err) { console.log(err) };
     });
 };
+function dependenciesChecker() {
+    return new Promise((resolve) => {
+        var interval = setInterval(() => {
+            if (__Bifrost && __qaData && __userData) {
+                console.log("%cAll Dependencies were loaded", "color: green");
+                clearInterval(interval)
+                resolve()
+            }
+        }, 200)
+    });
+};
 function init() {
     return new Promise(async (resolve) => {
         try {
@@ -788,11 +779,12 @@ function init() {
             await loadModal();
             await getAgentData();
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbzGihijGbY6DGdTrJ_u8tVynxHEq5-Z2rG0FALFWc5lTVUDiLuTBoVK8bEl5A0cWJhqWw/exec?portal=userData");
+            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
             await getCalendarID();
             await fetchLib('https://momentjs.com/downloads/moment.min.js');
             await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
             await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
-            await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
+            await dependenciesChecker();
             await changeSpinner();
             resolve();
         }
