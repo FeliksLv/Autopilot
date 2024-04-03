@@ -555,7 +555,7 @@ function insertTemplate() {
             console.log({ 'ActiveElement': __activeCard.element })
 
             //await waitForMutation(conf.paneCannedInput, 'Canned_response input', 'sel', ...[,], 'click', $('[aria-label="Insert canned response"]')[0], ...[,]); // true
-            await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', cannedResIcon); // true
+            await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', conf.cannedResIcon); // true
 
             $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
 
