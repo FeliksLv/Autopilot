@@ -744,12 +744,12 @@ function getAgentData() {
 };
 function saveAgentData() {
     return new Promise(async (resolve) => {
-        let agentData = await getAgentData
-        console.log(agentData)
+        let aux = await getAgentData;
+        console.log(aux);
         await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
         agentData.agent = $('profile-details .name').text().split(' ')[0]
-        console.log(agentData)
-        localStorage.setItem('ca_agent', JSON.stringify(agentData));
+        console.log(aux)
+        localStorage.setItem('ca_agent', JSON.stringify(aux));
         resolve()
     });
 };
