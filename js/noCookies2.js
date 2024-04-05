@@ -733,6 +733,7 @@ function getAgentData() {
                     if (dec.ag === agentData.ldap.replace('@google.com', '')) {
                         agentData.key = dec.id
                         console.log(`%cCalendar key was summoned`, "color: green");
+                        resolve()
                     };
                 };
             };
