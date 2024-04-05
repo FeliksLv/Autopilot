@@ -59,7 +59,7 @@ function loadCSS(url) {
 };
 function validateKey() {
     return new Promise(async (resolve, reject) => {
-        let calendarKey = JSON.parse(localStorage.getItem('ca-agent')).key;
+        let calendarKey = JSON.parse(localStorage.getItem('ca_agent')).key;
         console.log(calendarKey)
         console.log('Key validated')
         calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject("INVALID CALENDAR_ID");
