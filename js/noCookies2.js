@@ -731,9 +731,10 @@ function getAgentData() {
                 for (const user_data of window.__userData) {
                     let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
                     if (dec.ag === agentData.ldap.replace('@google.com', '')) {
+                        console.log(dec)
                         agentData.key = dec.id
                         console.log(`%cCalendar key was summoned`, "color: green");
-                        resolve()
+                        resolve(agentData)
                     };
                 };
             };
