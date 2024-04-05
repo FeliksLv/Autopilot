@@ -731,11 +731,8 @@ function getAgentData() {
                 for (const user_data of window.__userData) {
                     let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
                     if (dec.ag === agentData.ldap.replace('@google.com', '')) {
-                        console.log(agentData)
                         agentData.key = dec.id
-                        console.log(agentData)
                         console.log(`%cCalendar key was summoned`, "color: green");
-                        resolve(agentData);
                     };
                 };
             };
@@ -744,12 +741,12 @@ function getAgentData() {
 };
 function saveAgentData() {
     return new Promise(async (resolve) => {
-        let aux = await getAgentData;
-        console.log(aux);
+        let agentData = await getAgentData();
+        console.log(agentData);
         await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
         agentData.agent = $('profile-details .name').text().split(' ')[0]
-        console.log(aux)
-        localStorage.setItem('ca_agent', JSON.stringify(aux));
+        console.log(agentData)
+        localStorage.setItem('ca_agent', JSON.stringify(agentData));
         resolve()
     });
 };
