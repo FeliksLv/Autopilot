@@ -62,7 +62,7 @@ function validateKey() {
         let calendarKey = JSON.parse(localStorage.getItem('ca_agent')).key;
         console.log(calendarKey)
         console.log('Key validated')
-        calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject("INVALID CALENDAR_ID");
+        calendarKey != null && await updateCalendar(calendarKey) ? resolve() : reject("INVALID CALENDAR_ID");
     })
 };
 //Calendar ID Validation 
