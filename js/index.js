@@ -57,6 +57,13 @@ function loadCSS(url) {
         document.head.appendChild(link);
     });
 };
+function validateKey() {
+    return new Promise(async (resolve, reject) => {
+        let calendarKey = JSON.parse(localStorage.getItem('ca_agent')).key;
+        console.log(`%c${calendarKey}`, "color: pink");
+        calendarKey != null && await updateCalendar(calendarKey) ? resolve() : reject("INVALID CALENDAR_ID");
+    })
+};
 //Calendar ID Validation 
 async function validateId() {
     const msgContainer = document.querySelector(".message-container");
@@ -103,12 +110,6 @@ function insertModal2() {
             });
     });
 };
-function validateKey() {
-    return new Promise(async (resolve, reject) => {
-        let calendarKey = document.cookie.match(/calendarKey=(.{52})/);
-        calendarKey != null && await updateCalendar(calendarKey[1]) ? resolve() : reject("INVALID CALENDAR_ID");
-    })
-};
 function updateCalendar(key) {
     return new Promise(async (resolve) => {
         let timer = 0;
@@ -123,7 +124,7 @@ function updateCalendar(key) {
         document.head.appendChild(script);
         while (timer < 6000) {
             if (window.__Bifrost !== undefined && __Bifrost.data.length) {
-                console.log(`%cValid Calendar ID`, "color: green");
+                console.log(`%cValid Calendar ID🎇`, "color: goldenrod");
                 resolve(true);
                 return;
             };
@@ -217,22 +218,6 @@ function getActiveTab() {
         return ($(e).attr('style') === '' || $(e).attr('style') === undefined ? e : acc);
     });
 };
-function getAgentData() {
-    return new Promise(async (resolve) => {
-        if (localStorage.getItem('ca_agent') === null) {
-            await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
-            localStorage.setItem('ca_agent', JSON.stringify({
-                agent: $('profile-details .name').text().split(' ')[0],
-                ldap: JSON.parse(window.clientContext).userEmail
-            }));
-            resolve();
-        }
-        else {
-            console.log("%cAgent data already declared", "color: green");
-            resolve();
-        };
-    });
-};
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -259,7 +244,6 @@ function bulkBifrost() {
                     var region = /(?<=\[)(.*?)(?=\])/;
                     var richContent = $(message.querySelector(conf.logMessageContent)).text();
                     //Get Name only returns DEFAULT on tabs other than a case tab
-                    console.log(richContent);
                     bulkData.timezone = richContent.match(region)[0];
                     bulkData.name = [...$('action-bar input')].reduce((acc, e, i) => { return (e.value !== '' && i === 0 ? e.value : acc) }, 'DEFAULT_NAME');
                 }
@@ -271,7 +255,8 @@ function bulkBifrost() {
                     bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() };
                     for (const data of $('.message-body.message-body1 tbody > tr')) {
                         $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
-                            : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null;
+                            : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text()
+                                : $(data.querySelector('td:first-child')).text() === 'Tasks' ? bulkData.task = $(data.querySelector('td:last-child')).text() : null;
                     };
                 }
 
@@ -281,11 +266,11 @@ function bulkBifrost() {
                     // await waitForMutation(conf.logDfaContent, 'extra_information', 'from', $(conf.logMessages)[0], 'click', 'div > div', ...[,], false);
                     await waitForMutation(conf.logDfaContent, 'extra_information', 'click', 'div > div', $(conf.logMessages)[0], 'from', false);
                     bulkData.website = [...$(conf.logMessages)[0].querySelectorAll('a')].reduce((acc, url) => { return (reg.test(url.innerHTML) ? url.innerHTML : acc) }, "DEFAULT_URL");
+                    bulkData.tasl = 'idk'
                 };
             };
             //Case Data declaration
             if (__Bifrost.data.find(data => data.case_id === bulkData.activeCase)) {
-                console.log('BulkData');
                 console.log(bulkData);
                 if ($('#templateEmail').find(':selected').attr('crCode').match(/(?:ts as resched1|ts as reschedok|lg as resched1|lg as reschedok)\b/)) {
                     if (__activeCard.category === 'DFA') {
@@ -293,11 +278,12 @@ function bulkBifrost() {
                         window.__caseData = __Bifrost.data.reduce((acc, data) => {
                             return (bulkData.activeCase === data.case_id ? {
                                 ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                                name: bulkData.name, program: 'DFA', sellerInfo: 'none', website: bulkData.website, agent: bulkData.agent
+                                name: bulkData.name, program: 'DFA', sellerInfo: 'none', website: bulkData.website, agent: bulkData.agent, task: bulkData.task
                             } : acc);
                         }, {});
 
-                        console.log('Resch DFA');
+                        console.log("%cReschedule DFA", "color: cyan");
+
                         console.log(__caseData);
                         resolve();
                     }
@@ -306,11 +292,11 @@ function bulkBifrost() {
                         window.__caseData = __Bifrost.data.reduce((acc, data) => {
                             return (bulkData.activeCase === data.case_id ? {
                                 ...data, appointment: moment.tz(reschAppointment, 'DD-MM-YYYY hh:mm A', 'America/Sao_Paulo').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
+                                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent, task: bulkData.task
                             } : acc);
                         }, {});
 
-                        console.log('Resch Greentea');
+                        console.log("%cReschedule Greentea", "color: cyan");
                         console.log(__caseData);
                         resolve();
                     };
@@ -320,11 +306,11 @@ function bulkBifrost() {
                         window.__caseData = __Bifrost.data.reduce((acc, data) => {
                             return (bulkData.activeCase === data.case_id ? {
                                 ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                                name: bulkData.name, program: 'DFA', sellerInfo: 'none', website: bulkData.website, agent: bulkData.agent
+                                name: bulkData.name, program: 'DFA', sellerInfo: 'none', website: bulkData.website, agent: bulkData.agent, task: bulkData.task
                             } : acc);
                         }, {});
 
-                        console.log('Regular DFA');
+                        console.log("%cRegular DFA", "color: cyan");
                         console.log(__caseData);
                         resolve();
                     }
@@ -332,11 +318,10 @@ function bulkBifrost() {
                         window.__caseData = __Bifrost.data.reduce((acc, data) => {
                             return (bulkData.activeCase === data.case_id ? {
                                 ...data, appointment: moment.tz(data.appointment, 'UTC').tz(bulkData.timezone).format('DD/MM/YYYY - hh:mm A'),
-                                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent
+                                name: bulkData.name, program: bulkData.program, sellerInfo: bulkData.sellerInfo, website: bulkData.website, agent: bulkData.agent, task: bulkData.task
                             } : acc)
                         }, {});
-
-                        console.log('Regular Greentea');
+                        console.log("%cRegular Greentea", "color: cyan");
                         console.log(__caseData);
                         resolve();
                     };
@@ -354,7 +339,7 @@ async function getActiveCard() {
         let cards = getActiveTab().querySelectorAll('card');
         for (const element of cards) {
             if ($(element).is('[card-type="compose"].is-top')) {
-                console.log("%cCompose card was found", "color: green");
+                console.log("%cCompose card was found", "color: goldenrod");
                 window.__activeCard = {
                     'element': element,
                     'type': $(element).attr('card-type'),
@@ -379,7 +364,7 @@ async function updateAdresses() {
             await removeDefaultEmails();
             //Update all calendar attendees including the seller
             await insertNewEmails();
-            console.log("%cModified attendees", "color: green");
+            console.log("%cModified attendees🎇", "color: goldenrod");
             resolve();
         }
         catch (err) {
@@ -406,14 +391,14 @@ function insertNewEmails() {
         let sellerTemps = __qaData.reduce((acc, e) => { return (e.to === 'seller' ? [...acc, e.crCode] : acc) }, []);
         //To seller
         if (sellerTemps.includes(__activeCard.selectedTemp)) {
-            console.log("%cTo Seller", "color: orange");
+            console.log("%cTo Seller", "color: pink");
             $(toField).val(__caseData.sellerInfo.email);
             updateInput(toField);
             resolve();
         }
         //To customer
         else {
-            console.log("%cTo Customer", "color: orange");
+            console.log("%cTo Customer", "color: pink");
             $(toField).val(__caseData.attendees.toString());
             updateInput(toField);
             if (bccPrograms.some(e => __caseData.program.includes(e))) {
@@ -444,11 +429,12 @@ async function newEmail() {
     return new Promise(async (resolve, reject) => {
         try {
             if ($(conf.writeCard_btn).length) {
+                $(conf.writeCard_btn)[0].dispatchEvent(new Event('blur'), { bubbles: true })
                 await waitForMutation(conf.newEmail_btn, 'Lateral_bar', 'focus', conf.writeCard_btn);
                 await waitForMutation(conf.createEmail, 'New_email_card', 'click', conf.newEmail_btn);
                 $(conf.writeCard_btn)[0].dispatchEvent(new Event('blur'), { bubbles: true })
-                console.log('Write card blurred')
-                console.log("%cCreated email", "color: green");
+                console.log(`%cCreated Email🎇`, "color: goldenrod");
+
                 resolve();
             }
             else { reject("WRONG PAGE") };
@@ -464,13 +450,11 @@ function waitForMutation(el, id, event, aim, origin, type, reuse = true, txt) {
                     if (reuse && mutation.target.closest(el)) {
                         clearInterval(fireNSeek);
                         findMutation.disconnect();
-                        console.log(mutation.target.innerText);
                         resolve(); break;
                     };
                     if (type === 'from' && !reuse && $(origin.querySelector(el)).length && mutation.target.closest(el)) {
                         clearInterval(fireNSeek);
                         findMutation.disconnect();
-                        console.log(mutation.target.innerText);
                         resolve(); break;
                     };
                 }
@@ -502,7 +486,7 @@ function waitForMutation(el, id, event, aim, origin, type, reuse = true, txt) {
                 type === 'from' && event && aim ? origin.querySelector(aim).dispatchEvent(new Event(event), { bubbles: true })
                     : event && aim ? $(aim)[0].dispatchEvent(new Event(event), { bubbles: true }) : null;
             };
-        }, 500);
+        }, 600);
     });
 };
 function rangeSetter() {
@@ -513,6 +497,7 @@ function rangeSetter() {
     range.setEndAfter($newSelection.last()[0]);
     selection.removeAllRanges();
     selection.addRange(range);
+    //console.log(document.getSelection().anchorNode)
 };
 async function gaiaRequestCatcher() {
     return new Promise(resolve => window.onmessage = (request) => {
@@ -521,6 +506,16 @@ async function gaiaRequestCatcher() {
             var aureumData = JSON.parse(rawData)
             if (Object.keys(aureumData).length === 5) { resolve(aureumData) }
         }
+    })
+};
+async function gaiaBugFixer() {
+    return new Promise((resolve) => {
+        for (const item of $('.write-cards-wrapper')) {
+            if (item.getAttribute('style') === null) {
+                item.setAttribute('style', '')
+            }
+        }
+        resolve()
     })
 };
 function insertTemplate() {
@@ -540,25 +535,24 @@ function insertTemplate() {
             };
         }
         else {
-            console.log({ 'ActiveElement': __activeCard.element })
             await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', conf.cannedResIcon);
             $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
-
             console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
-
             await new Promise(resolve => setTimeout(resolve, 1000));
             $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
             $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
-            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
-
             $('.write-cards-wrapper card').removeClass("spread")
-            $('.write-cards-wrapper[style=""] card').addClass("spread")
+            $('.write-cards-wrapper card').addClass("spread")
 
-            var rangeFixer = setInterval(rangeSetter, 1)
+            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await gaiaBugFixer()
             $(conf.cannedDropdown)[0].click()
+            var rangeFixer = setInterval(rangeSetter, 1)
             window.gaiaBugProtector = await gaiaRequestCatcher();
             await insertedTempAlert();
-            console.log("%cCanned response was inserted", "color: green");
+            console.log(`%cCanned response was inserted🎇`, "color: goldenrod")
             clearInterval(rangeFixer)
             resolve();
         };
@@ -566,16 +560,17 @@ function insertTemplate() {
 };
 function autoFill() {
     return new Promise(async (resolve) => {
-        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}/g;
+        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\^138120|\^26743|\Atlas.Orgstore.CaseCreator.FirstName|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}|undefined/g;
         let codexGiga = {
             '{%^25154%}': __caseData.name, '{%^26042%}': __caseData.phone,
-            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id,
+            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id, '{%^26743%}': __caseData.website,
             '{%AGENT_FIRST_NAME%}': __caseData.agent, '{%IDENTIFIER_VENDOR_PARTNER%}': 'Cognizant',
-            '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': "__caseData.task",
+            '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': __caseData.task,
             '{Agent to Update Appointment Date, Time, and Timezone}': __caseData.appointment,
             '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
             '{url}': __caseData.website, '{case_id}': __caseData.case_id,
-            '{agent}': __caseData.agent, '{meet}': __caseData.meet
+            '{agent}': __caseData.agent, '{meet}': __caseData.meet,
+            '{%Atlas.Orgstore.CaseCreator.FirstName%}': __caseData.sellerInfo.name, 'undefined': __caseData.case_id
         };
         let emailBody = $(__activeCard.element.querySelector(conf.emailContent));
         let content = emailBody.html().replace(regTerms, matched => codexGiga[matched]);
@@ -599,16 +594,18 @@ function autoFill() {
         $('.write-cards-wrapper card').removeClass("spread");
         $(__activeCard.element.querySelectorAll(conf.highlightedTerms)).removeClass('field');
         __activeCard.element.querySelector(conf.createEmail).dispatchEvent(new Event('input', { bubbles: true }));
-        console.log("%cAutofilled", "color: green");
+        console.log("%c🎇Autofilled🎇", "color: goldenrod");
     });
 };
 function insertedTempAlert() {
     return new Promise(async (resolve) => {
         var findSelection = setInterval(() => {
             if (window.getSelection().anchorNode.closest('.write-cards-wrapper[style=""] card.is-top[card-type="compose"] #email-body-content-top')) {
+                console.log(`%cNode Matched🎇`, "color: goldenrod");
                 clearInterval(findSelection);
                 var tempInserted = setInterval(async () => {
                     if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
+                        console.log(`%cTemplate inserted🎇`, "color: goldenrod");
                         clearTimeout(bugProtector);
                         clearInterval(tempInserted);
                         resolve()
@@ -616,7 +613,7 @@ function insertedTempAlert() {
                 }, 250);
 
                 var bugProtector = setTimeout(() => {
-                    console.log(`%cConnect Cases bugged - Resseting the email insertion...`, "color: red");
+                    console.log(`%cConnect Cases Bugged - Gaia Template Insertion🎇`, "color: goldenrod");
                     clearInterval(tempInserted);
                     $(__activeCard.element.querySelector(conf.emailContent)).html(window.gaiaBugProtector.content);
                     resolve();
@@ -626,18 +623,11 @@ function insertedTempAlert() {
     });
 };
 function getExternalTemp() {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         //var signature = $(__activeCard.element.querySelector('#email-body-content-top-content > .replaced:last-child')).html()
-        var ext_files = [
-            { temp: 'ext attempt_es', file: 'attemptContact_es.html', title: 'Implementación con Equipo de Soluciones Técnicas de Google -  Se intentó Contactar' },
-            { temp: 'ext attempt_pt', file: 'attemptContact_pt.html', title: 'Implementação com o Time de Soluções Técnicas do Google - Tentativa de Contato' },
-            { temp: 'ext 3/9_es', file: 'day3_es.html', title: '[DÍA 3] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
-            { temp: 'ext 3/9_pt', file: 'day3_pt.html', title: '[DIA 3 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
-            { temp: 'ext 6/9_es', file: 'day6_es.html', title: '[DÍA 6] Consulta con el equipo de Soluciones Técnicas de Google - [{url}]' },
-            { temp: 'ext 6/9_pt', file: 'day6_pt.html', title: '[DIA 6 Acompanhamento] Consultoria com a Equipe de Soluções Técnicas do Google - [{url}]' },
-            { temp: 'ext mms_es', file: 'mms_es.html', title: '[Acción Requerida] {case_id} - Cita de implementación de etiquetas de Google para Conversiones Mejoradas para su sitio web' },
-            { temp: 'ext mms_pt', file: 'mms_pt.html', title: '[Ação necessária] {case_id} - Agendamento de implementação de tags do Google para Conversões Otimizadas para site' },
-        ];
+        const res = await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/guide.json')
+        let parsedGuide = await res.json();
+        let ext_files = parsedGuide.ext_data
 
         for (const item of ext_files) {
             if (item.temp === $('#templateEmail').find(':selected').attr('crCode')) {
@@ -725,45 +715,49 @@ function fetchLib(url) {
     return new Promise(async (resolve) => {
         try {
             await fetch(`${url}`).then(response => response.text()).then(text => eval(text));
-            console.log(`${url} was fully Loaded`);
+            console.log(`%c${url} was fully Loaded🎇`, "color: goldenrod");
             resolve();
         }
         catch (err) { console.log(err) };
     });
 };
-function getCalendarID() {
-    return new Promise(async (resolve) => {
-        try {
-            var waitForUsers = setInterval(() => {
-                if (window.__userData !== undefined && __userData.length) {
-                    console.log("__userData Found")
-                    console.log(__userData)
-                    clearInterval(waitForUsers);
-                    for (const user_data of window.__userData) {
-                        let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
-                        if (dec.ag === JSON.parse(localStorage.getItem('ca_agent')).ldap.replace('@google.com', '')) {
-                            let date = new Date();
-                            date.setDate(date.getDate() + 400);
-                            document.cookie = `calendarKey=${dec.id}; expires=${date.toUTCString()}; Priority=High`;
-                            console.log(`%cCalendar key was summoned`, "color: green");
-                            resolve();
-                        };
+function getAgentData() {
+    return new Promise((resolve) => {
+        let agentData = { ldap: JSON.parse(window.clientContext).userEmail };
+        let waitForUsers = setInterval(() => {
+            if (window.__userData !== undefined && __userData.length) {
+                clearInterval(waitForUsers);
+                for (const user_data of window.__userData) {
+                    let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
+                    if (dec.ag === agentData.ldap.replace('@google.com', '')) {
+                        agentData.key = dec.id;
+                        console.log(`%cCalendar key was summoned🎇`, "color: goldenrod");
+                        resolve(agentData);
                     };
                 };
-            }, 500);
-        }
-        catch (err) { console.log(err) };
+            };
+        }, 500);
+    });
+};
+function saveAgentData() {
+    return new Promise(async (resolve) => {
+        let agentData = await getAgentData();
+        await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
+        agentData.agent = $('profile-details .name').text().split(' ')[0];
+        console.log(agentData);
+        localStorage.setItem('ca_agent', JSON.stringify(agentData));
+        resolve();
     });
 };
 function dependenciesChecker() {
     return new Promise((resolve) => {
         var interval = setInterval(() => {
             if (window.__Bifrost && window.__qaData && window.__userData) {
-                console.log("%cAll Dependencies were loaded", "color: green");
-                clearInterval(interval)
-                resolve()
-            }
-        }, 200)
+                console.log("%cAll Dependencies were loaded🎇", "color: goldenrod");
+                clearInterval(interval);
+                resolve();
+            };
+        }, 200);
     });
 };
 function init() {
@@ -776,11 +770,11 @@ function init() {
             await loadCSS("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css");
             await loadCSS('https://code.jquery.com/ui/1.13.2/themes/dark-hive/jquery-ui.css');
             await fetchLib("https://code.jquery.com/jquery-3.7.1.min.js");
-            await loadModal();
-            await getAgentData();
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbzGihijGbY6DGdTrJ_u8tVynxHEq5-Z2rG0FALFWc5lTVUDiLuTBoVK8bEl5A0cWJhqWw/exec?portal=userData");
             await loadScript("https://script.google.com/a/macros/google.com/s/AKfycbznkfAXGOVgDS385t_czkBUD9rhLV3o4Xz87vsJmn3YrjajDE5m_BjTaUuABxTmpUJk/exec?portal=qaData");
-            await getCalendarID();
+            await getAgentData();
+            await saveAgentData()
+            await loadModal();
             await fetchLib('https://momentjs.com/downloads/moment.min.js');
             await fetchLib("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
             await fetchLib("https://momentjs.com/downloads/moment-timezone-with-data-10-year-range.min.js");
@@ -797,11 +791,11 @@ function loadModal() {
         try {
             await fetch('https://cdn.jsdelivr.net/gh/FeliksLv/Autopilot/html/firstModal.html')
                 .then(response => response.text()).then(temp => { $('.modal-container').html(temp) });
-            console.log("%cModal 1 inserted", "color: green");
+            console.log("%cModal I inserted🎇", "color: goldenrod");
             await validateKey();
-            console.log("%cValid key was found", "color: green");
+            console.log("%cValid key was found🎇", "color: goldenrod");
             await insertModal2();
-            console.log("%cAuthenticated user", "color: green");
+            console.log("%cAuthenticated user🎇", "color: goldenrod");
             resolve();
         }
         catch (err) {
@@ -845,13 +839,6 @@ function loadGA4() {
         document.head.appendChild(script);
     });
 };
-function saveCookie(element) {
-    if ($(element.target).is('.input-modal > input')) {
-        let date = new Date();
-        date.setDate(date.getDate() + 400);
-        document.cookie = `calendarKey=${$(element.target).val().trim()}; expires=${date.toUTCString()}; Priority=High`;
-    };
-};
 async function errorClosure(msg) {
     $('.alert').removeClass("show");
     $('.alert').addClass("hide");
@@ -873,12 +860,12 @@ async function errorClosure(msg) {
     };
     $(window).on("change", handleSelect);
     $(window).on("mouseover", dragModal);
-    $(window).on("input", saveCookie);
+    //$(window).on("input", saveCookie);
     $(window).on("click", (e) => {
         $(e.target).is('#checkButton') ? validateId()
             : e.target.closest('#closeModal') ? closeModal()
                 : e.target.closest('#circle') ? openModal()
-                    : $(e.target).is('#showTime') ? console.log('Showtime!') : null;
+                    : $(e.target).is('#showTime') ? console.log(`%cShowtime 🎇`, "color: goldenrod") : null;
     });
 
     var modalLoaded = setInterval(() => {
