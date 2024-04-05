@@ -219,7 +219,6 @@ function getActiveTab() {
         return ($(e).attr('style') === '' || $(e).attr('style') === undefined ? e : acc);
     });
 };
-
 function bulkBifrost() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -258,7 +257,8 @@ function bulkBifrost() {
                     bulkData.sellerInfo = { email: sellerInfo.match(/(?<=\()(.*)(?=\))/)[0], name: sellerInfo.match(/(.*)(?=\()/)[0].trim() };
                     for (const data of $('.message-body.message-body1 tbody > tr')) {
                         $(data.querySelector('td:first-child')).text() === 'Sales Program' ? bulkData.program = $(data.querySelector('td:last-child')).text()
-                            : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text() : null;
+                            : $(data.querySelector('td:first-child')).text() === 'Website' ? bulkData.website = $(data.querySelector('td:last-child')).text()
+                                : $(data.querySelector('td:first-child')).text() === 'Tasks' ? bulkData.task = $(data.querySelector('td:last-child')).text() : null;
                     };
                 }
 
@@ -511,6 +511,16 @@ async function gaiaRequestCatcher() {
         }
     })
 };
+async function gaiaBugFixer() {
+    return new Promise((resolve) => {
+        for (const item of $('.write-cards-wrapper')) {
+            if (item.getAttribute('style') === null) {
+                item.setAttribute('style', '')
+            }
+        }
+        resolve()
+    })
+};
 function insertTemplate() {
     return new Promise(async (resolve) => {
         if ($('#templateEmail').val() === "ext") {
@@ -531,19 +541,19 @@ function insertTemplate() {
             console.log({ 'ActiveElement': __activeCard.element })
             await waitForMutation(conf.paneCannedInput, 'Canned_response Input', 'click', conf.cannedResIcon);
             $(conf.cannedInput).val($('#templateEmail').find(':selected').attr('crCode'));
-
             console.log(`%c${$('#templateEmail').find(':selected').attr('crCode')}`, "color: green");
-
             await new Promise(resolve => setTimeout(resolve, 1000));
             $(conf.cannedInput)[0].dispatchEvent(new Event('focus', { bubbles: true }));
             $(__activeCard.element.querySelector(conf.emailContent)).html('<p dir="auto"><br></p>');
-            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
-
             $('.write-cards-wrapper card').removeClass("spread")
-            $('.write-cards-wrapper[style=""] card').addClass("spread")
+            $('.write-cards-wrapper card').addClass("spread")
 
-            var rangeFixer = setInterval(rangeSetter, 1)
+            await waitForMutation(conf.cannedDropdown, 'Canned_response Dropdown', 'input', conf.cannedInput);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await gaiaBugFixer()
             $(conf.cannedDropdown)[0].click()
+            var rangeFixer = setInterval(rangeSetter, 1)
             window.gaiaBugProtector = await gaiaRequestCatcher();
             await insertedTempAlert();
             console.log("%cCanned response was inserted", "color: green");
@@ -554,12 +564,12 @@ function insertTemplate() {
 };
 function autoFill() {
     return new Promise(async (resolve) => {
-        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}/g;
+        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\^138120|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}/g;
         let codexGiga = {
             '{%^25154%}': __caseData.name, '{%^26042%}': __caseData.phone,
-            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id,
+            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id, '{%^26743%}': __caseData.website,
             '{%AGENT_FIRST_NAME%}': __caseData.agent, '{%IDENTIFIER_VENDOR_PARTNER%}': 'Cognizant',
-            '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': "__caseData.task",
+            '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': __caseData.task,
             '{Agent to Update Appointment Date, Time, and Timezone}': __caseData.appointment,
             '{advertiser}': __caseData.name, '{phone}': __caseData.phone,
             '{url}': __caseData.website, '{case_id}': __caseData.case_id,
@@ -594,6 +604,7 @@ function insertedTempAlert() {
     return new Promise(async (resolve) => {
         var findSelection = setInterval(() => {
             if (window.getSelection().anchorNode.closest('.write-cards-wrapper[style=""] card.is-top[card-type="compose"] #email-body-content-top')) {
+                console.log(`%cNode Matched`, "color: green");
                 clearInterval(findSelection);
                 var tempInserted = setInterval(async () => {
                     if ($(__activeCard.element.querySelector('#email-body-content-top-content [role="presentation"]')).length) {
@@ -721,20 +732,19 @@ function fetchLib(url) {
         catch (err) { console.log(err) };
     });
 };
-
 function getAgentData() {
     return new Promise((resolve) => {
-        let agentData = { ldap: JSON.parse(window.clientContext).userEmail }
+        let agentData = { ldap: JSON.parse(window.clientContext).userEmail };
         let waitForUsers = setInterval(() => {
             if (window.__userData !== undefined && __userData.length) {
                 clearInterval(waitForUsers);
                 for (const user_data of window.__userData) {
                     let dec = { ag: window.atob(user_data.ag), id: window.atob(user_data.id) };
                     if (dec.ag === agentData.ldap.replace('@google.com', '')) {
-                        console.log(dec)
-                        agentData.key = dec.id
+                        console.log(dec);
+                        agentData.key = dec.id;
                         console.log(`%cCalendar key was summoned`, "color: green");
-                        resolve(agentData)
+                        resolve(agentData);
                     };
                 };
             };
@@ -744,24 +754,22 @@ function getAgentData() {
 function saveAgentData() {
     return new Promise(async (resolve) => {
         let agentData = await getAgentData();
-        console.log(agentData);
         await waitForMutation('profile-details', 'agent_data', 'click', conf.agentInfo);
-        agentData.agent = $('profile-details .name').text().split(' ')[0]
-        console.log(agentData)
+        agentData.agent = $('profile-details .name').text().split(' ')[0];
+        console.log(agentData);
         localStorage.setItem('ca_agent', JSON.stringify(agentData));
-        resolve()
+        resolve();
     });
 };
-
 function dependenciesChecker() {
     return new Promise((resolve) => {
         var interval = setInterval(() => {
             if (window.__Bifrost && window.__qaData && window.__userData) {
                 console.log("%cAll Dependencies were loaded", "color: green");
-                clearInterval(interval)
-                resolve()
-            }
-        }, 200)
+                clearInterval(interval);
+                resolve();
+            };
+        }, 200);
     });
 };
 function init() {
