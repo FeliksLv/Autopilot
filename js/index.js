@@ -560,10 +560,10 @@ function insertTemplate() {
 };
 function autoFill() {
     return new Promise(async (resolve) => {
-        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\^138120|\^26743|\Atlas.Orgstore.CaseCreator.FirstName|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}|undefined/g;
+        let regTerms = /\{%(?:\^25154|\^26042|\^79285|\^138120|\^138120|\^26743|\Atlas.Orgstore.CaseCreator.FirstName|\CASE_ID|AGENT_FIRST_NAME|IDENTIFIER_VENDOR_PARTNER|AGENT_NAME|ADVERTISER_NAME)\%}|\{(?:advertiser|url|case_id|phone|agent|meet|Agent to Update Appointment Date, Time, and Timezone)\}|undefined/g;
         let codexGiga = {
             '{%^25154%}': __caseData.name, '{%^26042%}': __caseData.phone,
-            '{%^79285%}': __caseData.website, '{%CASE_ID%} ': __caseData.case_id, '{%^26743%}': __caseData.website,
+            '{%^79285%}': __caseData.website,'{%^25154%}': ,'{%ADVERTISER_NAME%}': __caseData.name, '{%^26743%}': __caseData.website,
             '{%AGENT_FIRST_NAME%}': __caseData.agent, '{%IDENTIFIER_VENDOR_PARTNER%}': 'Cognizant',
             '{%AGENT_NAME%}': __caseData.agent, '{%^138120%}': __caseData.task,
             '{Agent to Update Appointment Date, Time, and Timezone}': __caseData.appointment,
